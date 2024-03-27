@@ -55,6 +55,15 @@ CLEANFILES += yajl.pc
 #
 beforedepend: yajl/yajl_version.h yajl.pc
 
+# sjg's Mk-files assume '-C' to copy the file(s), but '-c' is always backward
+# compatible (or at least on FreeBSD it is!)
+#
+# xxx sgj's Mk-files (or here) could/should be smart to choose '-C' if on
+# FreeBSD as there it offers some small advantage of not changing the
+# modification time of the target if it already exists and is identical.
+#
+FILES_COPY =	-c
+
 yajl/yajl_version.h: ${.CURDIR}/yajl/yajl_version.h.in
 	sed -e 's/$${LIB_MAJOR}/${LIB_MAJOR}/' \
 	    -e 's/$${LIB_MINOR}/${LIB_MINOR}/' \

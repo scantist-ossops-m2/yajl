@@ -23,6 +23,15 @@ INCS += ${yajl_INCS}
 INCS +=		yajl_version.h
 CLEANFILES +=	yajl_version.h
 
+# sjg's Mk-files assume '-C' to copy the file(s), but '-c' is always backward
+# compatible (or at least on NetBSD and FreeBSD it is! and in GNU fileutils too)
+#
+# xxx sgj's Mk-files (or here) could/should be smart to choose '-C' if on
+# FreeBSD as there it offers some small advantage of not changing the
+# modification time of the target if it already exists and is identical.
+#
+INC_COPY =	-c
+
 .include <bsd.prog.mk>	# bsd.inc.mk is insufficient (no ../Makefile.inc)
 .if !target(incinstall) && !target(inc_mkdirs)
 . sinclude <inc.mk>	# hack for sjg's Mk-files, esp. pre <bsd.inc.mk> link

@@ -384,6 +384,8 @@ yajl-showenv: .PHONY
 	echo "MKLINT = ${MKLINT:Q}"; \
 	echo "LDADD = ${LDADD:Q}"; \
 	echo "DPADD = ${DPADD:Q}"; \
+	echo "INC_COPY = ${INC_COPY:Q}"; \
+	echo "FILES_COPY = ${INC_COPY:Q}"; \
 	echo ""
 
 .endif # !target(yajl-showenv)
