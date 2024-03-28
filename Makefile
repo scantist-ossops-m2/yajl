@@ -1,22 +1,23 @@
 # -*- makefile-bsdmake -*-
 
-# This Makefile (and its associated include files) works with NetBSD Make and
-# Simon Gerraty's (sjg's) BMake & Mk-files from http://www.crufty.net/FreeWare/,
-# and with FreeBSD make with caveats.  For many systems the BMake included in
-# pkgsrc will also work (see https://pkgsrc.org/).
+# This Makefile (and its associated include files) works with NetBSD Make, and
+# Simon Gerraty's (sjg's) latest BMake from http://www.crufty.net/FreeWare/
+# (with some caveats), and with FreeBSD make.  For many systems the BMake
+# included in pkgsrc will also work (see https://pkgsrc.org/).  It is as yet
+# untested on OpenBSD.  BMake is not supported on FreeBSD.
 #
 # See:  http://www.crufty.net/ftp/pub/sjg/help/bmake.htm
 #
 # Pkgsrc will install on a vast number of systems, including MS-Windows with
 # Cygwin.  Similarly Simon's BMake works on most any Unix or Unix-like system.
 #
-# You should use $MAKEOBJDIRPREFIX so as to build everything elsewhere outside
-# of, or within a single sub-directory, of the source tree (i.e. instead of
-# polluting the source itself tree with "obj" sub-directories everywhere).
+# You should use $MAKEOBJDIRPREFIX, set in the environment, so as to build
+# everything elsewhere outside of, or within a single sub-directory, of the
+# source tree (i.e. instead of polluting the source itself tree with "obj"
+# sub-directories everywhere).
 #
 #	mkdir build
 #	export MAKEOBJDIRPREFIX=$(pwd -P)/build
-#	export WITH_AUTO_OBJ=yes		# just for FreeBSD, sigh.
 #	b(sd)make
 #
 # N.B.:  Some variants of BSD Make treat $MAKEOBJDIR as a sub-directory under
@@ -24,7 +25,7 @@
 # starts with a '/'!  You have been warned.  As with $MAKEOBJDIRPREFIX some
 # older versions also only allow it to be set in the environment.  You should
 # just use $MAKEOBJDIRPREFIX, set in the environment (except on OpenBSD since
-# 5.5, where $MAKEOBJDIR is necessary).
+# 5.5, where $MAKEOBJDIR is necessary, see below).
 #
 # You may change the final installation heriarchy from the default of "/usr" to
 # any path prefix of your choice by setting PREFIX on the make command lines,
@@ -50,13 +51,13 @@
 # is set to an empty string (PREFIX=""), but note the design is such that the
 # package can be installed at build time into a private DESTDIR (as above), then
 # archived and the resulting archive can be extracted at the root of the target
-# system's filesystem.  The default with PREFIX="/usr" will install into the
-# base of a typical unix filesystem, while something like PREFIX="/usr/pkg" will
-# install into a typical package installation direcory, and PREFIX="/usr/local"
-# (with DESTDIR=$(pwd -P)/dist) will be the equivalent of PREFIX="" and
-# DESTDIR="/usr/local", the difference being the latter does an immediate
-# install on the build system, while the former allows the DESTDIR to be
-# archived and then extracted on any suitable target system.
+# system's filesystem.  The default with PREFIX="/usr" (without DESTDIR) will
+# install into the base of a typical unix filesystem, while something like
+# PREFIX="/usr/pkg" will install into a typical package installation directory.
+# Setting PREFIX="/usr/local" along with DESTDIR=$(pwd -P)/dist will install
+# into the named DESTDIR and allow those files to be archived on the build
+# system and then extracted (at /) on any suitable target system where they will
+# end up in /usr/local.
 #
 # (This is not the normal use of DESTDIR in BSD Make, but it is the best way for
 # out-of-tree builds, and it matches the way pkgsrc now works internally.)
@@ -98,21 +99,20 @@
 # MacOS vs. various BMakes:
 #
 # OSX, aka macOS, since the release of Xcode 10(?) doesn't have a working
-# bsdmake in the base system any longer, nor does the one installable from
-# Homebrew work.
+# bsdmake in the base system any longer.
 #
-# However the version of BMake that can be installed from Homebrew does mostly
-# work.
+# However the most recent version of BMake that can be installed from Homebrew
+# does work.
 #
 # Manually installing sjg's BMake will also work, obviously.
 #
-# Unfortunately the BMake that comes with pkgsrc does not produce ideal results
-# on macOS as it does not (yet?) use sjg's Mk-files but rather it uses the
-# bootstrap-mk-files package, which (as of 20240210) has not yet been fully
+# Unfortunately the BMake that comes with pkgsrc does not directly produce ideal
+# results on macOS as it does not (yet?) use sjg's Mk-files but rather it uses
+# the bootstrap-mk-files package, which (as of 20240210) has not yet been fully
 # ported to OSX/Darwin (it is more or less just an out-of-date copy of the
-# non-portable NetBSD Mk files).  There are some hacks in src/Makefile to try to
-# detect the bootstrap-mk-files and to produce a shared library, but they're not
-# guaranteed!
+# non-portable NetBSD Mk files with minor tweaks).  There are some hacks in
+# src/Makefile to try to detect the bootstrap-mk-files and to produce a shared
+# library, but they're not guaranteed!
 #
 # Alernatively if one can do without the shared library then the pkgsrc bmake
 # will work as-is on macOS, and depending on the vintage of one's pkgsrc, it may
@@ -131,7 +131,8 @@
 # OpenBSD:
 #
 # So note OpenBSD's make since 5.5 (and before 2.1) does NOT support
-# $MAKEOBJDIRPREFIX at all.  For recent OpenBSD, just use ${MAKEOBJDIR} instead.
+# $MAKEOBJDIRPREFIX at all.  For recent OpenBSD, just use $MAKEOBJDIR instead.
+# See below for how to do this.
 #
 #
 # FreeBSD:
@@ -222,7 +223,8 @@
 # However in all but OpenBSD this has been fixed so that MAKEOBJDIRPREFIX can
 # also be set on the command line.  I think.  I have had bad experiences with
 # some versions (e.g. claiming to support setting it on the command line, but in
-# fact not supporting that at all.
+# fact not supporting that at all.  That's why the instructions above always
+# show setting it in the environment.
 
 #####################
 #
@@ -230,9 +232,6 @@
 #
 # Sub-directories of the project
 #
-# xxx this must come after <bsd.own.mk> and thus after Makefile.inc because of
-# the ugly hacks here to try to sort out wether or not a .WAIT is needed and can
-# be included in the list.
 
 SUBDIR =	src
 
