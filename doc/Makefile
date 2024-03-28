@@ -106,5 +106,5 @@ afterinstall: .PHONY install-docs
 	touch ${.TARGET}
 .endif
 .if !target(install)
-install: .PHONY realinstall	# xxx yes this seems backwards, but it works!
+install: .PHONY realinstall
 .endif
