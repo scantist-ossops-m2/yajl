@@ -18,8 +18,13 @@ SRCS +=	yajl_tree.c
 SRCS +=	yajl_version.c
 
 FILES +=		yajl.pc
+.if defined(MAKE_VERSION) && !defined(.FreeBSD) && ${MAKE} != "bsdmake"
+# sjg's Mk-files don't support FILESDIR_file
+FILESDIR =		${PKGCONFIGDIR}
+.else
 FILESDIR_yajl.pc =	${PKGCONFIGDIR}
 FILESBUILD_yajl.pc =	yes
+.endif
 yajl.pc: ${.CURDIR}/yajl.pc.in
 	sed -e 's/@FULLNAME@/${PACKAGE}/' \
 	    -e 's/@LIB@/${LIB}/' \
@@ -77,16 +82,6 @@ yajl/yajl_version.h: ${.CURDIR}/${bmake_topdir}/Makefile.inc
 # "make" after an install will fail!
 #
 yajl_version.o: yajl/yajl_version.h
-
-# Handling ${.OBJDIR} both with and without use of ${MAKEOBJDIRPREFIX} is
-# tedious.
-#
-# XXX ??? just use this: . if !defined(MAKEOBJDIRPREFIX)
-.if !exists(${.OBJDIR}/${bmake_topdir}/src)
-FILES += yajl/yajl_version.h
-# n.b.:  FILESDIR_blah won't work because of the "yajl/" directory
-FILESDIR = ${INCSDIR}
-.endif
 
 CLEANFILES += yajl/yajl_version.h
 # note:  cleandir doesn't remove local ${.OBJDIR} so we also won't worry about
