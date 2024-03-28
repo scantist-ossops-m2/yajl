@@ -263,13 +263,14 @@ SUBDIR =	src
 # invoke parallel builds (no -j)!
 #
 .if !defined(MAKE_VERSION) || \
-	(defined(unix) && ${unix} == "We run Unix"&& ${MAKE} != "bsdmake") || \
+	(defined(unix) && ${unix} == "We run Unix" && ${MAKE} != "bsdmake") || \
 	(${MAKE_VERSION} >= 20240212 && ${MAKE} != "bsdmake") || \
 	(defined(.FreeBSD) && ${.FreeBSD} == "true")
 SUBDIR +=	.WAIT
 SUBDIR_PARALLEL = 1 # defined, for FreeBSD....
-.elif defined(.MAKE.JOBS) && (${.MAKE.JOBS} > 1) && \
-	(!defined(MAKE_VERSION) || (${MAKE_VERSION} < 20200710 && ${MAKE} != "bsdmake"))
+.elif (defined(.MAKE.JOBS) && (${.MAKE.JOBS} > 1) && \
+	(!defined(MAKE_VERSION) || (${MAKE_VERSION} < 20200710 && ${MAKE} != "bsdmake"))) || \
+	(${MAKE} == "bsdmake" && ${.MAKEFLAGS:M-j} == "-j")
 #
 # xxx:  only more recent bmake's define .MAKE.JOBS.
 #
