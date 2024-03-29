@@ -132,6 +132,8 @@ static void yajl_array_free (yajl_val v)
  * appropriate value is pushed on the stack. When the end of the object is
  * reached (an appropriate closing bracket has been read), the value is popped
  * off the stack and added to the enclosing object using "context_add_value".
+ *
+ * May only be called by handle_start_array() or handle_start_map().
  */
 static int context_push(context_t *ctx, yajl_val v)
 {
@@ -288,8 +290,13 @@ static int context_add_value (context_t *ctx, yajl_val v)
     }
     else
     {
-        RETURN_ERROR (ctx, EINVAL, "context_add_value: Cannot add value to "
-                      "a value of type %#04x (not a composite type)",
+        /*
+         * XXX in theory this is impossible....  context_push() is only used
+         * (and allowed) for maps (objects) and arrays
+         */
+        RETURN_ERROR (ctx, EINVAL, "context_add_value: internal error: Cannot "
+                      "add a value to a value of type %#04x "
+                      "(not a composite type)",
                       ctx->stack->value->type);
     }
 }
