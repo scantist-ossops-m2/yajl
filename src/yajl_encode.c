@@ -19,7 +19,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 static void CharToHex(unsigned int c, unsigned char * hexBuf)
 {
