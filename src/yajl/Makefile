@@ -33,8 +33,12 @@ CLEANFILES +=	yajl_version.h
 INC_COPY =	-c
 
 .include <bsd.prog.mk>	# bsd.inc.mk is insufficient (no ../Makefile.inc)
+
+# a hack for sjg's Mk-files where only <lib.mk> includes <inc.mk>, which would
+# normally be sensible (programs don't normally install headers), but it is
+# easier to trick <bsd.prog.mk> into not doing anything else....
 .if !target(incinstall) && !target(inc_mkdirs)
-. sinclude <inc.mk>	# hack for sjg's Mk-files, esp. pre <bsd.inc.mk> link
+. sinclude <inc.mk>
 .endif
 
 # For NetBSD
