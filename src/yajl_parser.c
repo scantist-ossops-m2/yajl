@@ -126,14 +126,14 @@ yajl_render_error_string(yajl_handle hand, const unsigned char * jsonText,
         text[i++] = '\n';
         text[i] = 0;
         {
-            char * newStr = (char *)
+            char *newStr =
                 YA_MALLOC(&(hand->alloc), (size_t)(strlen((char *) str) +
                                                    strlen((char *) text) +
                                                    strlen(arrow) + 1));
             newStr[0] = 0;
-            strcat((char *) newStr, (char *) str);
-            strcat((char *) newStr, (char *) text);
-            strcat((char *) newStr, arrow);
+            strcat(newStr, (char *) str);
+            strcat(newStr, (char *) text);
+            strcat(newStr, arrow);
             YA_FREE(&(hand->alloc), str);
             str = (unsigned char *) newStr;
         }
