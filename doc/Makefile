@@ -1,5 +1,10 @@
 # -*- makefile-bsdmake -*-
 
+# xxx this is a bit ugly, but we need to define some targets before including
+# <bsd.prog.mk>, and yet we also need to use MKDOC, and that's in <bsd.own.mk>,
+# but to include that we must include our own Makefile.inc first...
+#
+.include "../Makefile.inc"
 .include <bsd.own.mk>
 
 #
