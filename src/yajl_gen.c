@@ -118,8 +118,7 @@ yajl_gen_config(yajl_gen g, yajl_gen_option opt, ...)
  *
  * yajl_gen yajl_gen_alloc
  * returns an allocated generator handle on success, NULL on failure (e.g. due
- * to invalid parameters or an allocation failure).  Must be freed by passing it
- * to yajl_gen_free().
+ * to invalid parameters).  It must be freed by passing it to yajl_gen_free().
  *
  * const yajl_alloc_funcs *afs
  * an optional pointer to a structure which allows the client to overide the
