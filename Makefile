@@ -357,7 +357,7 @@ dependall: .PHONY all
 # XXX this is just a very crude check...  not as complete as the FreeBSD check
 #
 bmake-test-obj: .PHONY
-	@if [ $$(pwd -P) = ${.CURDIR:Q} -a ! -z "${MAKEOBJDIRPREFIX:Q}" -a ! -d "${MAKEOBJDIRPREFIX:Q}" ]; then echo "You must create ${MAKEOBJDIRPREFIX}!"; false; fi
+	@if [ $$(pwd -P) = ${.CURDIR} -a ! -z "${MAKEOBJDIRPREFIX}" -a ! -d "${MAKEOBJDIRPREFIX}" ]; then echo "You must create ${MAKEOBJDIRPREFIX} first!"; false; fi
 
 # n.b.:  Makefile.inc includes <bsd.own.mk>, which defines a default "all"
 # target (amongst others), so it must come after all the above, but since it
