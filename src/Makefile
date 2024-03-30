@@ -124,14 +124,17 @@ CFLAGS += -I${GENHDIR}
 afterdepend: _bmake_static_lib_build_symlink
 
 _bmake_static_lib_build_symlink:	.PHONY
-	ln -fs lib$(LIB).a lib$(LIB)_s.a
+	@if [ ! -h lib${LIB}_s.a -o "$$(readlink lib${LIB}_s.a)" != "lib${LIB}.a" ]; then	\
+		echo "ln -fs lib${LIB}.a lib${LIB}_s.a";					\
+		ln -fs lib${LIB}.a lib${LIB}_s.a;						\
+	fi
 
-CLEANFILES += lib$(LIB)_s.a
+CLEANFILES += lib${LIB}_s.a
 
 afterinstall: _bmake_static_lib_install_symlink
 
 _bmake_static_lib_install_symlink: .PHONY
-	ln -fs lib$(LIB).a ${DESTDIR}${LIBDIR}/lib$(LIB)_s.a
+	ln -fs lib${LIB}.a ${DESTDIR}${LIBDIR}/lib${LIB}_s.a
 
 # As mentioned above it is not (currently) normal for a BSD Make system to allow
 # a sub-directory in a library source directory, but for now it seems we can
