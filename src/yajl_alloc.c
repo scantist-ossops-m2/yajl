@@ -20,7 +20,8 @@
  *
  * Serious users of YAJL should replace these with error checking and handling
  * variants.  Implementations of yaf->realloc should check for sz==0 and fault
- * on that as well.
+ * on that as well as yajl will never use realloc() to try to free something as
+ * that would rely on implementation defined behaviour.
  **/
 
 #include "yajl_alloc.h"
