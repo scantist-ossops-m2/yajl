@@ -7,14 +7,22 @@ yajl_INCS +=	yajl_tree.h
 
 # special for sjg's Mk-files
 #
-# XXX Not needed after some point, but when????  Definitely not for macos
-# bsdmake!  Probably not needed after there was a <bsd.inc.mk> symlink to
-# <inc.mk>!  Try 20181221 as that's where this fails on Ubuntu-20.04.
+# XXX Not needed before some point, but when????  Definitely not for macos
+# bsdmake!  Try 20181221 as that's where this fails on Ubuntu-20.04.
 #
 # but must be avoided with pkgsrc bootstrap-mk-files...
 #
-.if defined(MAKE_VERSION) && (${MAKE_VERSION} > 20181221 && ${MAKE} != "bsdmake") && \
-	(defined(unix) && ${unix} != "We run Unix")
+# Note: all known BMake Mk-files will define ${unix}, but normally only pkgsrc
+# bootstrap-mk-files will set it to "We run Unix".  XXX Presumably if BMake was
+# installed on a system where "uname -s" reported "Unix", this might fail.
+# (Historical note:  in bygone days one AT&T UNIX systems the "system name",
+# i.e. the _sysname_ field returned by uname(2), was considered to be the
+# (unique) local name of the system, and it was frequently set to be the same as
+# the _nodename_ field by "uname -S name", so even on real UNIX(tm) systems
+# "uname -s" would be unlikely to ever report "Unix".)
+#
+.if defined(MAKE_VERSION) && ${MAKE_VERSION} >= 20181221 && ${MAKE} != "bsdmake" && \
+	${unix} != "We run Unix"
 INCS += ${yajl_INCS:S|^|${.CURDIR}/|}
 .else
 INCS += ${yajl_INCS}
