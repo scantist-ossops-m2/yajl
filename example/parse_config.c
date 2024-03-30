@@ -40,6 +40,7 @@ static void
 yajlTestFree(void *ctx,
              void *ptr)
 {
+    /* note: yajl should never try to free a NULL pointer */
     assert(ptr != NULL);
     TEST_CTX(ctx)->numFrees++;
     if (TEST_CTX(ctx)->do_printfs) {
@@ -54,6 +55,7 @@ yajlTestMalloc(void *ctx,
 {
     void *rv = NULL;
 
+    /* note: yajl should never ask for zero bytes */
     assert(sz != 0);
     TEST_CTX(ctx)->numMallocs++;
     rv = malloc(sz);
@@ -71,11 +73,10 @@ yajlTestRealloc(void *ctx,
 {
     void *rv = NULL;
 
+    /* note: yajl should never ask for zero bytes, nor use realloc() to free */
+    assert(sz != 0);
     if (ptr == NULL) {
-        assert(sz != 0);
         TEST_CTX(ctx)->numMallocs++;
-    } else if (sz == 0) {
-        TEST_CTX(ctx)->numFrees++;
     }
     rv = realloc(ptr, sz);
     assert(rv != NULL);
