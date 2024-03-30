@@ -21,7 +21,7 @@ yajl_INCS +=	yajl_tree.h
 # the _nodename_ field by "uname -S name", so even on real UNIX(tm) systems
 # "uname -s" would be unlikely to ever report "Unix".)
 #
-.if defined(MAKE_VERSION) && ${MAKE_VERSION} >= 20181221 && ${MAKE} != "bsdmake" && \
+.if defined(MAKE_VERSION) && ${MAKE_VERSION} > 20181221 && ${MAKE} != "bsdmake" && \
 	${unix} != "We run Unix"
 INCS += ${yajl_INCS:S|^|${.CURDIR}/|}
 .else
