@@ -97,11 +97,11 @@ afterinstall: .PHONY install-docs # maninstall
 #
 # xxx we really only want <bsd.files.mk>, but that can't be included directly on
 # FreeBSD (and some don't include <bsd.obj.mk> either), and so the best common
-# top-level mk-file is:
+# top-level Mk-file is:
 #
 .include <bsd.prog.mk>
 
-# work-arounds for Crufty mk-files
+# work-arounds for sjg's Mk-files
 .if !target(.depend)
 .depend:
 	touch ${.TARGET}
