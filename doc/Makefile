@@ -47,19 +47,15 @@ CXREF ?= cxref
 # triggered by bmake-do-docs as a subdir target
 docs: .PHONY html/yajl.apdx.html
 
-# See below for additional, non-optional, rules for other docs
+# See below, outside the if-MKDOC, for additional, non-optional, rules for
+# installing other docs
 #
 # XXX could this be done with <bsd.doc.mk>'s EXTRA ???
 #
-install-docs:: .PHONY html/yajl.apdx.html
+install-docs:: .PHONY docs .WAIT
 	cd html && cp -fR ./ ${DESTDIR}${DOCDIR}/${PACKAGE}/html/
 	rm -f ${DESTDIR}${DOCDIR}/${PACKAGE}/html/index.html
 	ln -fs ./doc/yajl.cxref.html ${DESTDIR}${DOCDIR}/${PACKAGE}/html/index.html
-
-# this is effectively an "obj" directory to contain just the HTML output files
-#
-#html:
-#	mkdir -p ${.OBJDIR}/html
 
 # XXX this really SHOULD also depend on all the $${files} found herein....
 #
@@ -87,17 +83,17 @@ DOCFILES =		\
 	COPYING		\
 	TODO
 
-install-docs:: .PHONY beforeinstall docs .WAIT # maninstall
+install-docs:: .PHONY ${DOCFILES:S|^|${.CURDIR}/../|}
 .for docfile in ${DOCFILES}
-	cp ${.CURDIR:Q}/../${docfile} ${DESTDIR}${DOCDIR}/${PACKAGE}/
+	cp ${.CURDIR}/../${docfile} ${DESTDIR}${DOCDIR}/${PACKAGE}/
 .endfor
 
 # this is how we hook in the "docs" install...
 #
-afterinstall: .PHONY install-docs
+afterinstall: .PHONY install-docs # maninstall
 
 # N.B.:  we don't use <bsd.doc.mk> -- it does nothing useful for us for now, and
-# it causes headaches with Crufty's mk-files, and possibly FreeBSD too....
+# it causes headaches with Crufty's Mk-files, and possibly FreeBSD too....
 #
 # xxx we really only want <bsd.files.mk>, but that can't be included directly on
 # FreeBSD (and some don't include <bsd.obj.mk> either), and so the best common
