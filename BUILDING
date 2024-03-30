@@ -1,8 +1,14 @@
 Short story:
 
 	mkdir build
-	MAKEOBJDIRPREFIX=$(pwd -P)/build bsdmake
-	MAKEOBJDIRPREFIX=$(pwd -P)/build bsdmake DESTDIR=/usr/local install
+	MAKEOBJDIRPREFIX=$(pwd -P)/build bmake
+	MAKEOBJDIRPREFIX=$(pwd -P)/build bmake PREFIX=/usr/local install
+
+You can also create an archive for installing on other like systems
+with:
+
+	MAKEOBJDIRPREFIX=$(pwd -P)/build bmake PREFIX=/usr/local DESTDIR=$(pwd -P)/dist install
+	( cd dist && pax -wzf ../yajl-$(uname -s)-$(uname -r)-$(uname -m).tar.gz . )
 
 WARNING:  Do not specify DESTDIR for the first (build) phase!
 
@@ -15,17 +21,18 @@ issues with various mk-files (also some more comments in Makefile.inc).
 
 When things go wrong:
 
-Acquire and install bmake and its mk-files and try again.
+Acquire and install BMake and its Mk-files and try again.
 
         http://www.crufty.net/ftp/pub/sjg/bmake.tar.gz
-        http://www.crufty.net/ftp/pub/sjg/mk.tar.gz
+
 
 NOTES:
 
 - some mk-files support a "regress" target which can be used to run
   all the tests from the top level of the source tree -- if yours
   doesn't you can go into the tests, example, and perf directories
-  directly and run "make regress" in each
+  directly and run "make regress" in each, adding MAKEOBJDIRPREFIX as
+  necessary
 
 - bmake from http://pkgsrc.org/ is another good option, though it
   currently has some issues with shared libraries on platforms which
@@ -37,8 +44,8 @@ NOTES:
   code.  Cxref is in pkgsrc in the devel/cxref module and can also be
   found at https://www.gedanken.org.uk/software/cxref/
 
-  If you do not have "cxref" installed you can disable the build (and
-  install) of the documentation by setting "MKDOC=no":
+  If you do not have "cxref" installed you can disable the creation of
+  HTML documentation (and its install) by setting "MKDOC=no":
 
-	MAKEOBJDIRPREFIX=$(pwd -P)/build bsdmake MKDOC=no
-	MAKEOBJDIRPREFIX=$(pwd -P)/build bsdmake DESTDIR=/usr/local MKDOC=no
+	MAKEOBJDIRPREFIX=$(pwd -P)/build bmake MKDOC=no
+	MAKEOBJDIRPREFIX=$(pwd -P)/build bmake PREFIX=/usr/local MKDOC=no
