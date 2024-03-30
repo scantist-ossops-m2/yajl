@@ -43,9 +43,9 @@ main(int argc, char ** argv)
     yajl_status stat;
     size_t rd;
     yajl_handle hand;
-    static unsigned char fileData[65536];
+    static unsigned char fileData[65536]; /* xxx BUFSIZ ? */
     int quiet = 0;
-    int retval = 0;
+    int retval = EXIT_SUCCESS;
     int a = 1;
 
     /* allocate a parser */
@@ -89,7 +89,7 @@ main(int argc, char ** argv)
                 if (!quiet) {
                     fprintf(stderr, "error encountered on file read\n");
                 }
-                retval = 1;
+                retval = EXIT_FAILURE;
             }
             break;
         }
@@ -98,27 +98,28 @@ main(int argc, char ** argv)
         /* read file data, pass to parser */
         stat = yajl_parse(hand, fileData, rd);
 
-        if (stat != yajl_status_ok) break;
+        if (stat != yajl_status_ok) {
+            break;
+        }
     }
-
-    if (stat != yajl_status_ok)
-    {
+    if (stat == yajl_status_ok) {
+        /* parse any remaining data in the buffer */
+        stat = yajl_complete_parse(hand);
+    }
+    if (stat != yajl_status_ok) {
         if (!quiet) {
             unsigned char * str = yajl_get_error(hand, 1, fileData, rd);
+
             fprintf(stderr, "%s", (const char *) str);
             yajl_free_error(hand, str);
         }
-        retval = 1;
-    } else {
-        /* parse any remaining buffered data */
-        stat = yajl_complete_parse(hand);
+        retval = EXIT_FAILURE;
     }
-
     yajl_free(hand);
 
     if (!quiet) {
-        printf("JSON is %s\n", retval ? "invalid" : "valid");
+        printf("JSON is %s\n", (retval == EXIT_SUCCESS) ? "valid" : "invalid");
     }
 
-    return retval;
+    exit(retval);
 }
