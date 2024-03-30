@@ -78,6 +78,15 @@ bmake_topdir = ..
 #
 LIB_VERSION =	${LIB_MAJOR}.${LIB_MINOR}.${LIB_MICRO}
 
+# note: FreeBSD <bsd.subr.mk> effectively turns off SUBDIR_PARALLEL for installs
+#
+.if make(install) && \
+	defined(MAKE_VERSION) && ${MAKE_VERSION} <= 20240328 && \
+	(!defined(.FreeBSD) || ${.FreeBSD} != "true") && \
+	${.MAKEFLAGS:M-j} == "-j"
+. error "Parallel installs are not supported with older BMakes"
+.endif
+
 # Installation directories
 #
 # N.B.:  ${DESTDIR} if set on the 'install' command line, it is also prepended
