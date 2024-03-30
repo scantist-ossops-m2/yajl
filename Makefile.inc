@@ -162,7 +162,8 @@ PKGCONFIGDIR ?= ${LIBDIR}/pkgconfig
 #
 # Program and test directories need to reference the static library so that they
 # can be run from their build directory without the library having yet been
-# installed, so we use "-l${PACKAGE:S/^lib//}_s" to do the linking.
+# installed, so we use "-l${PACKAGE:S/^lib//}_s" to do the linking.  (Note some
+# packages include "lib" as the prefix in their package name!)
 #
 # see src/Makefile for where LIB is set
 #
