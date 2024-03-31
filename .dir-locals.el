@@ -1,5 +1,4 @@
-((c-mode . ((smart-tabs-mode . nil)
-	    (c-basic-offset . 4)
+((c-mode . ((c-basic-offset . 4)
 	    (tab-width . 4)
 	    (indent-tabs-mode . nil)
 	    (smart-tabs-mode . nil))))
