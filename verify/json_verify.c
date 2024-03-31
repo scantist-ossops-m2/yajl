@@ -16,9 +16,74 @@
 
 #include <yajl/yajl_parse.h>
 
+#include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+/* context storage for memory debugging routines */
+typedef struct
+{
+    bool do_printfs;
+    unsigned int numFrees;
+    unsigned int numMallocs;
+    /* XXX: we really need a hash table here with per-allocation
+     *      information to find any missing free() calls */
+} yajlTestMemoryContext;
+
+/* cast void * into context */
+#define TEST_CTX(vptr) ((yajlTestMemoryContext *) (vptr))
+
+static void
+yajlTestFree(void *ctx,
+             void *ptr)
+{
+    /* note: yajl should never try to free a NULL pointer */
+    assert(ptr != NULL);
+    TEST_CTX(ctx)->numFrees++;
+    if (TEST_CTX(ctx)->do_printfs) {
+        fprintf(stderr, "yfree:  %p\n", ptr);
+    }
+    free(ptr);
+}
+
+static void *
+yajlTestMalloc(void *ctx,
+               size_t sz)
+{
+    void *rv = NULL;
+
+    /* note: yajl should never ask for zero bytes */
+    assert(sz != 0);
+    TEST_CTX(ctx)->numMallocs++;
+    rv = malloc(sz);
+    assert(rv != NULL);
+    if (TEST_CTX(ctx)->do_printfs) {
+        fprintf(stderr, "yalloc:  %p of %ju\n", rv, sz);
+    }
+    return rv;
+}
+
+static void *
+yajlTestRealloc(void *ctx,
+                void *ptr,
+                size_t sz)
+{
+    void *rv = NULL;
+
+    /* note: yajl should never ask for zero bytes, nor use realloc() to free */
+    assert(sz != 0);
+    if (ptr == NULL) {
+        TEST_CTX(ctx)->numMallocs++;
+    }
+    rv = realloc(ptr, sz);
+    assert(rv != NULL);
+    if (TEST_CTX(ctx)->do_printfs) {
+        fprintf(stderr, "yrealloc:  %p -> %p of %ju\n", ptr, rv, sz);
+    }
+    return rv;
+}
 
 #ifndef EXIT_USAGE
 # define EXIT_USAGE	2
@@ -47,36 +112,73 @@ main(int argc, char **argv)
     int quiet = 0;
     int retval = EXIT_SUCCESS;
     int a = 1;
+    bool set_allow_comments = false;
+    bool set_dont_validate = false;
+    bool set_allow_multi = false;
 
-    /* allocate a parser */
-    hand = yajl_alloc(NULL, NULL, NULL);
+    /* memory allocation debugging: allocate a structure which assigns
+     * allocation routines */
+    yajl_alloc_funcs allocFuncs = {
+        yajlTestMalloc,
+        yajlTestRealloc,
+        yajlTestFree,
+        (void *) NULL
+    };
+
+    /* memory allocation debugging: allocate a structure which collects
+     * statistics and controls debugging features */
+    yajlTestMemoryContext memCtx = {
+        .do_printfs = false,
+        .numMallocs = 0,
+        .numFrees = 0,
+    };
+
+    allocFuncs.ctx = (void *) &memCtx;
 
     /* check arguments.*/
     while ((a < argc) && (argv[a][0] == '-') && (strlen(argv[a]) > 1)) {
         unsigned int i;
-        for ( i=1; i < strlen(argv[a]); i++) {
+
+        for (i = 1; i < strlen(argv[a]); i++) {
             switch (argv[a][i]) {
-                case 'q':
-                    quiet = 1;
-                    break;
-                case 'c':
-                    yajl_config(hand, yajl_allow_comments, 1);
-                    break;
-                case 'u':
-                    yajl_config(hand, yajl_dont_validate_strings, 1);
-                    break;
-                case 's':
-                    yajl_config(hand, yajl_allow_multiple_values, 1);
-                    break;
-                default:
-                    fprintf(stderr, "unrecognized option: '%c'\n\n", argv[a][i]);
-                    usage(argv[0]);
+            case 'D':
+                memCtx.do_printfs = true;
+                break;
+            case 'q':
+                quiet = 1;
+                break;
+            case 'c':
+                set_allow_comments = true;
+                break;
+            case 'u':
+                set_dont_validate = true;
+                break;
+            case 's':
+                set_allow_multi = true;
+                break;
+            default:
+                fprintf(stderr, "unrecognized option: '%c'\n\n", argv[a][i]);
+                usage(argv[0]);
             }
         }
         ++a;
     }
     if (a < argc) {
         usage(argv[0]);
+    }
+
+    /* allocate a parser */
+    hand = yajl_alloc(NULL, &allocFuncs, NULL);
+
+    /* configure the parser */
+    if (set_allow_comments) {
+        yajl_config(hand, yajl_allow_comments, 1);
+    }
+    if (set_dont_validate) {
+        yajl_config(hand, yajl_dont_validate_strings, 1);
+    }
+    if (set_allow_multi) {
+        yajl_config(hand, yajl_allow_multiple_values, 1);
     }
 
     for (;;) {
@@ -120,6 +222,10 @@ main(int argc, char **argv)
 
     if (!quiet) {
         printf("JSON is %s\n", (retval == EXIT_SUCCESS) ? "valid" : "invalid");
+    }
+
+    if (!quiet) {
+        fprintf(stderr, "memory leaks:\t%u\n", memCtx.numMallocs - memCtx.numFrees);
     }
 
     exit(retval);
