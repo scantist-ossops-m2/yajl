@@ -46,21 +46,28 @@ typedef struct
 /* cast void * into context */
 #define TEST_CTX(vptr) ((yajlTestMemoryContext *) (vptr))
 
-static void yajlTestFree(void * ctx, void * ptr)
+static void
+yajlTestFree(void *ctx,
+             void *ptr)
 {
     assert(ptr != NULL);
     TEST_CTX(ctx)->numFrees++;
     free(ptr);
 }
 
-static void * yajlTestMalloc(void * ctx, size_t sz)
+static void *
+yajlTestMalloc(void *ctx,
+               size_t sz)
 {
     assert(sz != 0);
     TEST_CTX(ctx)->numMallocs++;
     return malloc(sz);
 }
 
-static void * yajlTestRealloc(void * ctx, void * ptr, size_t sz)
+static void *
+yajlTestRealloc(void *ctx,
+                void *ptr,
+                size_t sz)
 {
     if (ptr == NULL) {
         assert(sz != 0);
@@ -76,7 +83,8 @@ static void * yajlTestRealloc(void * ctx, void * ptr, size_t sz)
 /* begin parsing callback routines */
 #define BUF_SIZE 2048
 
-static int test_yajl_null(void *ctx)
+static int
+test_yajl_null(void *ctx)
 {
     if (TEST_CTX(ctx)->do_printfs) {
         printf("null\n");
@@ -84,7 +92,9 @@ static int test_yajl_null(void *ctx)
     return 1;
 }
 
-static int test_yajl_boolean(void * ctx, int boolVal)
+static int
+test_yajl_boolean(void *ctx,
+                  int boolVal)
 {
     if (TEST_CTX(ctx)->do_printfs) {
         printf("bool: %s\n", boolVal ? "true" : "false");
@@ -92,7 +102,9 @@ static int test_yajl_boolean(void * ctx, int boolVal)
     return 1;
 }
 
-static int test_yajl_integer(void *ctx, long long integerVal)
+static int
+test_yajl_integer(void *ctx,
+                  long long integerVal)
 {
     if (TEST_CTX(ctx)->do_printfs) {
         printf("integer: %lld\n", integerVal);
@@ -100,7 +112,9 @@ static int test_yajl_integer(void *ctx, long long integerVal)
     return 1;
 }
 
-static int test_yajl_double(void *ctx, double doubleVal)
+static int
+test_yajl_double(void *ctx,
+                 double doubleVal)
 {
     if (TEST_CTX(ctx)->do_printfs) {
         printf("double: %.*g\n", DBL_DIG, doubleVal);
@@ -108,8 +122,10 @@ static int test_yajl_double(void *ctx, double doubleVal)
     return 1;
 }
 
-static int test_yajl_string(void *ctx, const unsigned char * stringVal,
-                            size_t stringLen)
+static int
+test_yajl_string(void *ctx,
+                 const unsigned char *stringVal,
+                 size_t stringLen)
 {
     if (TEST_CTX(ctx)->do_printfs) {
         printf("string: '");
@@ -119,8 +135,10 @@ static int test_yajl_string(void *ctx, const unsigned char * stringVal,
     return 1;
 }
 
-static int test_yajl_map_key(void *ctx, const unsigned char * stringVal,
-                             size_t stringLen)
+static int
+test_yajl_map_key(void *ctx,
+                  const unsigned char *stringVal,
+                  size_t stringLen)
 {
     if (TEST_CTX(ctx)->do_printfs) {
         char * str = (char *) malloc(stringLen + 1);
@@ -132,7 +150,8 @@ static int test_yajl_map_key(void *ctx, const unsigned char * stringVal,
     return 1;
 }
 
-static int test_yajl_start_map(void *ctx)
+static int
+test_yajl_start_map(void *ctx)
 {
     if (TEST_CTX(ctx)->do_printfs) {
         printf("map open '{'\n");
@@ -141,7 +160,8 @@ static int test_yajl_start_map(void *ctx)
 }
 
 
-static int test_yajl_end_map(void *ctx)
+static int
+test_yajl_end_map(void *ctx)
 {
     if (TEST_CTX(ctx)->do_printfs) {
         printf("map close '}'\n");
@@ -149,7 +169,8 @@ static int test_yajl_end_map(void *ctx)
     return 1;
 }
 
-static int test_yajl_start_array(void *ctx)
+static int
+test_yajl_start_array(void *ctx)
 {
     if (TEST_CTX(ctx)->do_printfs) {
         printf("array open '['\n");
@@ -157,7 +178,8 @@ static int test_yajl_start_array(void *ctx)
     return 1;
 }
 
-static int test_yajl_end_array(void *ctx)
+static int
+test_yajl_end_array(void *ctx)
 {
     if (TEST_CTX(ctx)->do_printfs) {
         printf("array close ']'\n");
@@ -183,7 +205,8 @@ static yajl_callbacks callbacks = {
 # define EXIT_USAGE	2
 #endif
 
-static void usage(const char * progname)
+static void
+usage(const char *progname)
 {
     fprintf(stderr,
             "usage:  %s [options] [file.json]\n"
@@ -201,11 +224,11 @@ static void usage(const char * progname)
 }
 
 int
-main(int argc, char ** argv)
+main(int argc, char **argv)
 {
     yajl_handle hand;
-    const char * fileName = NULL;
-    static unsigned char * fileData = NULL;
+    const char *fileName = NULL;
+    static unsigned char *fileData = NULL;
     FILE *file;
     size_t bufSize = BUF_SIZE;
     yajl_status stat;
@@ -279,8 +302,7 @@ main(int argc, char ** argv)
         exit(2);
     }
 
-    if (fileName)
-    {
+    if (fileName) {
         file = fopen(fileName, "r");
         if (file == NULL) {
             fprintf(stderr, "error opening '%s': %s\n", fileName, strerror(errno));
@@ -288,9 +310,7 @@ main(int argc, char ** argv)
             free(fileData);
             exit(1);
         }
-    }
-    else
-    {
+    } else {
         file = stdin;
         fileName = "stdin";
     }
@@ -325,8 +345,7 @@ main(int argc, char ** argv)
     yajl_free(hand);
     free(fileData);
 
-    if (fileName)
-    {
+    if (fileName) {
         fclose(file);
     }
     /* finally, print out some memory statistics */

@@ -25,7 +25,7 @@
 #endif
 
 static void
-usage(const char * progname)
+usage(const char *progname)
 {
     fprintf(stderr, "%s: validate json from stdin\n"
                     "usage: json_verify [options]\n"
@@ -38,7 +38,7 @@ usage(const char * progname)
 }
 
 int
-main(int argc, char ** argv)
+main(int argc, char **argv)
 {
     yajl_status stat;
     size_t rd;
@@ -108,13 +108,14 @@ main(int argc, char ** argv)
     }
     if (stat != yajl_status_ok) {
         if (!quiet) {
-            unsigned char * str = yajl_get_error(hand, 1, fileData, rd);
+            unsigned char *str = yajl_get_error(hand, 1, fileData, rd);
 
-            fprintf(stderr, "%s", (const char *) str);
+            fprintf(stderr, "%s", str);
             yajl_free_error(hand, str);
         }
         retval = EXIT_FAILURE;
     }
+
     yajl_free(hand);
 
     if (!quiet) {
