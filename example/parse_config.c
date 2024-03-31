@@ -183,3 +183,10 @@ main(void)
 
     exit(memCtx.numMallocs - memCtx.numFrees ? 1 : 0);
 }
+
+/*
+ * Local Variables:
+ * eval: (make-local-variable 'compile-command)
+ * compile-command: (concat "MAKEOBJDIRPREFIX=../build " (default-value 'compile-command))
+ * End:
+ */

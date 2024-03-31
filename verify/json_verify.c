@@ -123,3 +123,10 @@ main(int argc, char ** argv)
 
     exit(retval);
 }
+
+/*
+ * Local Variables:
+ * eval: (make-local-variable 'compile-command)
+ * compile-command: (concat "MAKEOBJDIRPREFIX=../build " (default-value 'compile-command))
+ * End:
+ */
