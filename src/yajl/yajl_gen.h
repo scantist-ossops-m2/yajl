@@ -30,17 +30,17 @@ extern "C" {
 #endif
     /*+ generator status codes +*/
     typedef enum {
-        yajl_gen_status_ok = 0,        /*+ no error +*/
-        yajl_gen_keys_must_be_strings, /*+ at a point where a map key is
-                                        *  generated, a function other than
-                                        *  yajl_gen_string was called +*/
+        yajl_gen_status_ok = 0,         /*+ no error +*/
+        yajl_gen_keys_must_be_strings,  /*+ at a point where a map key is
+                                         *  generated, a function other than
+                                         *  yajl_gen_string was called +*/
         yajl_max_depth_exceeded,        /*+ YAJL's maximum generation depth was
                                          *  exceeded.  see YAJL_MAX_DEPTH +*/
         yajl_gen_in_error_state,        /*+ A generator function (yajl_gen_XXX)
                                          *  was called while in an error
                                          *  state +*/
-        yajl_gen_generation_complete,   /*+ A complete JSON document has been
-                                         *  generated +*/
+        yajl_gen_generation_complete,   /*+ A complete JSON document has already
+                                         *  been generated +*/
         yajl_gen_invalid_number,        /*+ yajl_gen_double was passed an
                                          *  invalid floating point value
                                          *  (infinity or NaN). +*/
