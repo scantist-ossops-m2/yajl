@@ -17,13 +17,13 @@
 #include <yajl/yajl_parse.h>
 #include <yajl/yajl_gen.h>
 
+#include <assert.h>
 #include <errno.h>
 #include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <assert.h>
 
 #if !defined(DBL_DIG)
 # if defined(__DBL_DIG__)
@@ -234,6 +234,10 @@ main(int argc, char **argv)
     yajl_status stat;
     size_t rd;
     int i, j;
+    bool set_allow_comments = false;
+    bool set_allow_garbage = false;
+    bool set_allow_multi = false;
+    bool set_allow_partial = false;
 
     /* memory allocation debugging: allocate a structure which holds
      * allocation routines */
@@ -252,18 +256,18 @@ main(int argc, char **argv)
     memCtx.numMallocs = 0;
     memCtx.numFrees = 0;
 
-
     allocFuncs.ctx = (void *) &memCtx;
 
-    /* allocate the parser */
-    hand = yajl_alloc(&callbacks, &allocFuncs, (void *) &memCtx);
-
-    /* check arguments... so lame... */
-    for (i=1;i<argc;i++) {
-        if (!strcmp("-c", argv[i])) {
-            yajl_config(hand, yajl_allow_comments, 1);
+    /* check arguments... so lame... xxx convert to getopt() */
+    for (i = 1; i < argc; i++) {
+        if (!strcmp("-D", argv[i])) {
+            memCtx.do_printfs = true;
+        } else if (!strcmp("-c", argv[i])) {
+            set_allow_comments = true;
         } else if (!strcmp("-b", argv[i])) {
-            if (++i >= argc) usage(argv[0]);
+            if (++i >= argc) {
+                usage(argv[0]);
+            }
 
             /* validate integer */
             for (j=0;j<(int)strlen(argv[i]);j++) {
@@ -279,17 +283,34 @@ main(int argc, char **argv)
                         bufSize);
             }
         } else if (!strcmp("-g", argv[i])) {
-            yajl_config(hand, yajl_allow_trailing_garbage, 1);
+            set_allow_garbage = true;
         } else if (!strcmp("-m", argv[i])) {
-            yajl_config(hand, yajl_allow_multiple_values, 1);
+            set_allow_multi = true;
         } else if (!strcmp("-N", argv[i])) {
             memCtx.do_printfs = 0;
         } else if (!strcmp("-p", argv[i])) {
-            yajl_config(hand, yajl_allow_partial_values, 1);
+            set_allow_partial = true;
         } else {
             fileName = argv[i];
             break;
         }
+    }
+
+    /* allocate a parser */
+    hand = yajl_alloc(&callbacks, &allocFuncs, (void *) &memCtx);
+
+    /* configure the parser */
+    if (set_allow_comments) {
+        yajl_config(hand, yajl_allow_comments, 1);
+    }
+    if (set_allow_garbage) {
+        yajl_config(hand, yajl_allow_trailing_garbage, 1);
+    }
+    if (set_allow_multi) {
+        yajl_config(hand, yajl_allow_multiple_values, 1);
+    }
+    if (set_allow_partial) {
+        yajl_config(hand, yajl_allow_partial_values, 1);
     }
 
     fileData = (unsigned char *) malloc(bufSize);
