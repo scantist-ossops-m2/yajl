@@ -313,37 +313,41 @@ main(int argc, char **argv)
         yajl_config(hand, yajl_allow_partial_values, 1);
     }
 
-    fileData = (unsigned char *) malloc(bufSize);
-
+    fileData = (unsigned char *) malloc(bufSize + 1);
     if (fileData == NULL) {
         fprintf(stderr,
                 "failed to allocate read buffer of %zu bytes, exiting.",
                 bufSize);
-        yajl_free(hand);
-        exit(2);
+        exit(EXIT_FAILURE);
     }
 
     if (fileName) {
         file = fopen(fileName, "r");
         if (file == NULL) {
-            fprintf(stderr, "error opening '%s': %s\n", fileName, strerror(errno));
-            yajl_free(hand);
-            free(fileData);
-            exit(1);
+            fprintf(stderr, "error opening '%s': %s\n",
+                    fileName, strerror(errno));
+            exit(EXIT_FAILURE);
         }
     } else {
         file = stdin;
         fileName = "stdin";
     }
     for (;;) {
-        rd = fread((void *) fileData, (size_t) 1, bufSize, file);
-
-        if (rd <= 0) {
-            if (!feof(file)) {
-                fprintf(stderr, "error reading from '%s'\n", fileName);
+        rd = fread(fileData, (size_t) 1, bufSize, file);
+        if (rd == 0) {
+            if (ferror(file)) {
+                fprintf(stderr, "%s: error encountered: %s\n",
+                        fileName, strerror(errno));
+                exit(EXIT_FAILURE);
+            } else if (!feof(file)) {
+                fprintf(stderr, "%s: error before EOF: %s\n",
+                        fileName, strerror(errno));
+                exit(EXIT_FAILURE);
             }
             break;
         }
+        fileData[rd] = '\0';
+
         /* read file data, now pass to parser */
         stat = yajl_parse(hand, fileData, rd);
 

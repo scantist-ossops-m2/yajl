@@ -17,6 +17,7 @@
 #include <yajl/yajl_parse.h>
 
 #include <assert.h>
+#include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -183,19 +184,17 @@ main(int argc, char **argv)
 
     for (;;) {
         rd = fread((void *) fileData, (size_t) 1, sizeof(fileData) - 1, stdin);
-
-        retval = 0;
-
         if (rd == 0) {
-            if (!feof(stdin)) {
-                if (!quiet) {
-                    fprintf(stderr, "error encountered on file read\n");
-                }
-                retval = EXIT_FAILURE;
+            if (ferror(stdin)) {
+                fprintf(stderr, "error encountered reading stdin: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            } else if (!feof(stdin)) {
+                fprintf(stderr, "error on stdin before EOF: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
             }
             break;
         }
-        fileData[rd] = 0;
+        fileData[rd] = '\0';
 
         /* read file data, pass to parser */
         stat = yajl_parse(hand, fileData, rd);

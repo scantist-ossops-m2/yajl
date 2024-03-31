@@ -120,12 +120,14 @@ main(void)
     rd = fread((void *) fileData, (size_t) 1, sizeof(fileData) - 1, stdin);
 
     /* file read error handling */
-    if ((rd == 0 && !feof(stdin)) || ferror(stdin)) {
-        perror("error encountered on file read");
-        exit(1);
-    } else if (!feof(stdin)) {
-        fprintf(stderr, "config file too big\n");
-        exit(1);
+    if (rd == 0) {
+        if (ferror(stdin)) {
+            perror("error encountered reading stdin");
+            exit(1);
+        } else if (!feof(stdin)) {
+            fprintf(stderr, "config file too big\n");
+            exit(1);
+        }
     }
     fileData[rd] = '\0';
 
