@@ -9,14 +9,11 @@ INTERNALPROG =	# defined
 realinstall:
 proginstall:
 
-# this test seems to fail, the old run_tests script was bogus and
-# broken and useless and unnecessary
-#
 regress:
 .if defined(USE_ASAN)
 	@if [  -x /usr/sbin/paxctl ]; then /usr/sbin/paxctl +a ${.OBJDIR}/${PROG}; fi
 .endif
-	@echo Not running: ${.OBJDIR}/${PROG}, because it is broken.
+	${.OBJDIR}/${PROG}; rc=$$?; if [ $$rc != 0 ]; then echo "rc=$$rc"; false; fi
 
 .include <bsd.prog.mk>
 
