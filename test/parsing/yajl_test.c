@@ -306,13 +306,17 @@ main(int argc, char ** argv)
         /* read file data, now pass to parser */
         stat = yajl_parse(hand, fileData, rd);
 
-        if (stat != yajl_status_ok) break;
+        if (stat != yajl_status_ok) {
+            break;
+        }
     }
 
-    stat = yajl_complete_parse(hand);
-    if (stat != yajl_status_ok)
-    {
-        unsigned char * str = yajl_get_error(hand, 0, fileData, rd);
+    if (stat == yajl_status_ok) {
+        stat = yajl_complete_parse(hand);
+    }
+    if (stat != yajl_status_ok) {
+        unsigned char *str = yajl_get_error(hand, 0, fileData, rd);
+
         fflush(stdout);
         fprintf(stderr, "%s", (char *) str);
         yajl_free_error(hand, str);

@@ -307,7 +307,10 @@ main(int argc, char **argv)
             yajl_gen_clear(g);
         }
     }
-
+    if (stat == yajl_status_ok) {
+        /* parse any remaining data in the buffer */
+        stat = yajl_complete_parse(hand);
+    }
     if (stat != yajl_status_ok) {
         unsigned char *str = yajl_get_error(hand, 1, fileData, rd);
 
