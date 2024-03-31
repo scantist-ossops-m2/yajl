@@ -199,7 +199,7 @@ main(int argc, char **argv)
     yajl_gen g;
     yajl_status stat;
     size_t rd;
-    int retval = 0;
+    int retval = EXIT_SUCCESS;
     int a = 1;
     bool disable_beautify = false;
     bool set_allow_multi = false;
@@ -288,7 +288,7 @@ main(int argc, char **argv)
         if (rd == 0) {
             if (!feof(stdin)) {
                 fprintf(stderr, "error on file read.\n");
-                retval = 1;
+                retval = EXIT_FAILURE;
             }
             break;
         }
@@ -313,9 +313,7 @@ main(int argc, char **argv)
 
         fprintf(stderr, "%s", str);
         yajl_free_error(hand, str);
-        retval = 1;
-    } else {
-        stat = yajl_complete_parse(hand);
+        retval = EXIT_FAILURE;
     }
 
     yajl_gen_free(g);
@@ -323,7 +321,7 @@ main(int argc, char **argv)
 
     fprintf(stderr, "memory leaks:\t%u\n", memCtx.numMallocs - memCtx.numFrees);
 
-    return retval;
+    exit(retval);
 }
 
 /*
