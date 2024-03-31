@@ -355,7 +355,6 @@ main(int argc, char **argv)
             break;
         }
     }
-
     if (stat == yajl_status_ok) {
         stat = yajl_complete_parse(hand);
     }
@@ -365,27 +364,30 @@ main(int argc, char **argv)
         fflush(stdout);
         fprintf(stderr, "%s", (char *) str);
         yajl_free_error(hand, str);
+        /*
+         * n.b.:  the error text is in the expected output (the "*.gold" file),
+         * so we don't need to also set a non-zero exit code -- the test
+         * succeeds so long as there are no spurious system errors or memory
+         * leaks -- expected parsing errors are OK.
+         */
     }
 
     yajl_free(hand);
     free(fileData);
 
-    if (fileName) {
+    if (file != stdin) {
         fclose(file);
     }
-    /* finally, print out some memory statistics */
-
-/* (lth) only print leaks here, as allocations and frees may vary depending
- *       on read buffer size, causing false failures.
- *
- *  printf("allocations:\t%u\n", memCtx.numMallocs);
- *  printf("frees:\t\t%u\n", memCtx.numFrees);
-*/
     fflush(stderr);
     fflush(stdout);
+    /*
+     * (lth) only print leaks here, as allocations and frees may vary depending
+     *       on read buffer size, causing false failures.
+     *
+     */
     printf("memory leaks:\t%u\n", memCtx.numMallocs - memCtx.numFrees);
 
-    exit(0);
+    exit(memCtx.numMallocs - memCtx.numFrees ? EXIT_FAILURE : EXIT_SUCCESS);
     /* NOTREACHED */
 }
 

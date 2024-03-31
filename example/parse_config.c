@@ -166,7 +166,7 @@ main(void)
 
     fprintf(stderr, "memory leaks:\t%u\n", memCtx.numMallocs - memCtx.numFrees);
 
-    exit(memCtx.numMallocs - memCtx.numFrees ? 1 : 0);
+    exit(memCtx.numMallocs - memCtx.numFrees ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
 /*

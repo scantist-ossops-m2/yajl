@@ -327,6 +327,9 @@ main(int argc, char **argv)
     yajl_free(hand);
 
     fprintf(stderr, "memory leaks:\t%u\n", memCtx.numMallocs - memCtx.numFrees);
+    if ((memCtx.numMallocs - memCtx.numFrees) > 0) {
+        retval = EXIT_FAILURE;
+    }
 
     exit(retval);
 }
