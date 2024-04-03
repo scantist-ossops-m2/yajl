@@ -78,11 +78,11 @@ application.
 
 ## YAJL is tiny.
 
-Fat free.  No whip.
+Fat free.  No whip.  Now truly so with the elimination of CMake!
 
 enjoy,
 Lloyd - July, 2007
-
+Greg - April, 2024
 
 [GHRY]: https://github.com/robohack/yajl/
 [LLOYD]: https://github.com/lloyd/yajl/
