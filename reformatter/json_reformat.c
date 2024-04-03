@@ -25,8 +25,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* non-zero when we're reformatting a stream */
-static int s_streamReformat = 0;
+/* true when we're reformatting a stream */
+static bool s_streamReformat = false;
 
 #define GEN_AND_RETURN(func)                                          \
     {                                                                 \
@@ -239,7 +239,7 @@ main(int argc, char **argv)
                 break;
             case 's':
                 set_allow_multi = true;
-                s_streamReformat = 1;
+                s_streamReformat = true;
                 break;
             case 'u':
                 set_dont_validate = true;
