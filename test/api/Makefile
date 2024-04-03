@@ -13,7 +13,7 @@ regress:
 .if defined(USE_ASAN)
 	@if [  -x /usr/sbin/paxctl ]; then /usr/sbin/paxctl +a ${.OBJDIR}/${PROG}; fi
 .endif
-	${.OBJDIR}/${PROG}; rc=$$?; if [ $$rc != 0 ]; then echo "rc=$$rc"; false; fi
+	ulimit -v unlimited && ${.OBJDIR}/${PROG}; rc=$$?; if [ $$rc != 0 ]; then echo "rc=$$rc"; false; fi
 
 .include <bsd.prog.mk>
 
