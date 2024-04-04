@@ -265,7 +265,8 @@ main(int argc, char **argv)
     yajl_gen_config(g, yajl_gen_validate_utf8, 1);
 
     /* ok.  open file.  let's read and parse */
-    hand = yajl_alloc(&callbacks, NULL, (void *) g);
+    hand = yajl_alloc(&callbacks, &allocFuncs, (void *) g);
+
     /* and let's allow comments by default */
     yajl_config(hand, yajl_allow_comments, 1);
 
