@@ -213,9 +213,9 @@ usage(const char *progname)
                                                           "to stdout\n"
             "   -b  set the read buffer size\n"
             "   -c  allow comments\n"
-            "   -g  allow *g*arbage after valid JSON text\n"
-            "   -m  allows the parser to consume multiple JSON values\n"
-            "       from a single string separated by whitespace\n"
+            "   -g  allow garbage after valid JSON text\n"
+            "   -m  allow the parser to consume multiple JSON values\n"
+            "       from a single stream separated by whitespace\n"
             "   -N  do not print tokens or values\n"
             "   -p  partial JSON documents should not cause errors\n",
             progname);
