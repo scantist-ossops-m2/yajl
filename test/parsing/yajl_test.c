@@ -285,8 +285,6 @@ main(int argc, char **argv)
             set_allow_garbage = true;
         } else if (!strcmp("-m", argv[i])) {
             set_allow_multi = true;
-        } else if (!strcmp("-N", argv[i])) {
-            memCtx.do_printfs = 0;
         } else if (!strcmp("-p", argv[i])) {
             set_allow_partial = true;
         } else {
