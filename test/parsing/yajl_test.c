@@ -81,7 +81,6 @@ yajlTestRealloc(void *ctx,
 
 
 /* begin parsing callback routines */
-#define BUF_SIZE 2048
 
 static int
 test_yajl_null(void *ctx)
@@ -230,7 +229,7 @@ main(int argc, char **argv)
     const char *fileName = NULL;
     static unsigned char *fileData = NULL;
     FILE *file;
-    size_t bufSize = BUF_SIZE;
+    size_t bufSize = BUFSIZ;
     yajl_status stat;
     size_t rd;
     int i, j;
