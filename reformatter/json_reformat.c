@@ -248,8 +248,8 @@ main(int argc, char **argv)
                 set_escape_solidus = true;
                 break;
             default:
-                fprintf(stderr, "unrecognized option: '%c'\n\n",
-                        argv[a][i]);
+                fprintf(stderr, "%s: unrecognized option: '%c'\n\n",
+                        argv[0], argv[a][i]);
                 usage(argv[0]);
             }
         }
