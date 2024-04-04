@@ -286,11 +286,11 @@ main(int argc, char **argv)
         rd = fread((void *) fileData, (size_t) 1, sizeof(fileData) - 1, stdin);
         if (rd == 0) {
             if (ferror(stdin)) {
-                fprintf(stderr, "error encountered: %s\n",
+                fprintf(stderr, "stdin: error encountered: %s\n",
                         strerror(errno));
                 exit(EXIT_FAILURE);
             } else if (!feof(stdin)) {
-                fprintf(stderr, "error before EOF: %s\n",
+                fprintf(stderr, "stdin: error before EOF: %s\n",
                         errno ? strerror(errno) : "Not an error");
                 exit(EXIT_FAILURE);
             }
@@ -318,7 +318,7 @@ main(int argc, char **argv)
     if (stat != yajl_status_ok) {
         unsigned char *str = yajl_get_error(hand, 1, fileData, rd);
 
-        fprintf(stderr, "%s", str);
+        fprintf(stderr, "stdin: %s", str);
         yajl_free_error(hand, str);
         retval = EXIT_FAILURE;
     }
