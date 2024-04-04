@@ -194,7 +194,7 @@ int
 main(int argc, char **argv)
 {
     yajl_handle hand;
-    static unsigned char fileData[BUFSIZ];
+    static unsigned char fileData[BUFSIZ + 1];
     /* generator config */
     yajl_gen g;
     yajl_status stat;

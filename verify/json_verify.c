@@ -109,7 +109,7 @@ main(int argc, char **argv)
     yajl_status stat;
     size_t rd;
     yajl_handle hand;
-    static unsigned char fileData[65536]; /* xxx BUFSIZ ? */
+    static unsigned char fileData[BUFSIZ + 1];
     int quiet = 0;
     int retval = EXIT_SUCCESS;
     int a = 1;
