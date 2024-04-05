@@ -19,10 +19,10 @@
 #include "yajl_parser.h"
 #include "yajl_alloc.h"
 
+#include <assert.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
-#include <assert.h>
 
 const char *
 yajl_status_to_string(yajl_status stat)

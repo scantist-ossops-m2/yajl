@@ -20,14 +20,15 @@
 #include "yajl_encode.h"
 #include "yajl_bytestack.h"
 
-#include <stdlib.h>
-#include <limits.h>
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
 #include <assert.h>
+#include <ctype.h>
+#include <errno.h>
+#include <limits.h>
 #include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define MAX_VALUE_TO_MULTIPLY ((LLONG_MAX / 10) + (LLONG_MAX % 10))
 

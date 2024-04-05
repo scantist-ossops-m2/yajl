@@ -27,13 +27,13 @@
  * +html+ <a href="../example/parse_config.c.html#file">example/parse_config.c</a><br>
  **/
 
+#include <assert.h>
+#include <errno.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
 #include <stdlib.h>
-#include <errno.h>
-#include <assert.h>
+#include <string.h>
 
 #include "yajl/yajl_tree.h"
 #include "yajl/yajl_parse.h"

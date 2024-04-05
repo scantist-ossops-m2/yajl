@@ -23,9 +23,10 @@
 #include "yajl_lex.h"
 #include "yajl_buf.h"
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <assert.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #ifdef YAJL_LEXER_DEBUG
