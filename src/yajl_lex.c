@@ -423,6 +423,7 @@ yajl_lex_number(yajl_lexer lexer, const unsigned char * jsonText,
      */
 
     unsigned char c;
+    bool leadingZero = false;
 
     yajl_tok tok = yajl_tok_integer;
 
@@ -439,6 +440,9 @@ yajl_lex_number(yajl_lexer lexer, const unsigned char * jsonText,
     if (c == '0') {
         RETURN_IF_EOF;
         c = readChar(lexer, jsonText, offset);
+        if (c >= '0' && c <= '9') {
+            leadingZero = true;
+        }
     } else if (c >= '1' && c <= '9') {
         do {
             RETURN_IF_EOF;
@@ -455,6 +459,7 @@ yajl_lex_number(yajl_lexer lexer, const unsigned char * jsonText,
         int numRd = 0;
 
         RETURN_IF_EOF;
+        leadingZero = false;
         c = readChar(lexer, jsonText, offset);
 
         while (c >= '0' && c <= '9') {
@@ -474,6 +479,7 @@ yajl_lex_number(yajl_lexer lexer, const unsigned char * jsonText,
     /* optional exponent (indicates this is floating point) */
     if (c == 'e' || c == 'E') {
         RETURN_IF_EOF;
+        leadingZero = false;
         c = readChar(lexer, jsonText, offset);
 
         /* optional sign */
@@ -493,6 +499,11 @@ yajl_lex_number(yajl_lexer lexer, const unsigned char * jsonText,
             return yajl_tok_error;
         }
         tok = yajl_tok_double;
+    }
+    if (leadingZero) {
+        unreadChar(lexer, offset);
+        lexer->error = yajl_lex_integer_with_leading_zero;
+        return yajl_tok_error;
     }
 
     /* we always go "one too far" */
@@ -804,6 +815,8 @@ yajl_lex_error_to_string(yajl_lex_error error) /*+ lexer error value +*/
         case yajl_lex_unallowed_comment:
             return "probable comment found in input text, comments are "
                    "not enabled.";
+        case yajl_lex_integer_with_leading_zero:
+            return "malformed integer, a leading zero is invalid.";
     }
     /* NOTREACHED */
     return "unknown error code";

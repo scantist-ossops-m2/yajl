@@ -75,7 +75,8 @@ typedef enum {
     yajl_lex_missing_integer_after_decimal,
     yajl_lex_missing_integer_after_exponent,
     yajl_lex_missing_integer_after_minus,
-    yajl_lex_unallowed_comment
+    yajl_lex_unallowed_comment,
+    yajl_lex_integer_with_leading_zero
 } yajl_lex_error;
 
 const char * yajl_lex_error_to_string(yajl_lex_error error);
