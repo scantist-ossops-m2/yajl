@@ -81,6 +81,7 @@ typedef enum {
 
 const char * yajl_lex_error_to_string(yajl_lex_error error);
 yajl_lex_error yajl_lex_get_error(yajl_lexer lexer);
+void yajl_lex_adjust_charOff(yajl_lexer lexer, intmax_t chg);
 size_t yajl_lex_current_line(yajl_lexer lexer);
 size_t yajl_lex_current_char(yajl_lexer lexer);
 

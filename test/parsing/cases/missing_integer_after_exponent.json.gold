@@ -1,2 +1,2 @@
-lexical error: malformed number, a digit is required after the exponent.
+line: 1: offset: 2: lexical error: malformed number, a digit is required after the exponent.
 memory leaks:	0

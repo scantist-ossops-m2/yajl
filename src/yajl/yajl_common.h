@@ -24,6 +24,7 @@
 #define __YAJL_COMMON_H__
 
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

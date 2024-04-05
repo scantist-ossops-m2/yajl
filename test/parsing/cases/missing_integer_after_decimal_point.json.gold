@@ -1,2 +1,2 @@
-lexical error: malformed number, a digit is required after the decimal point.
+line: 1: offset: 2: lexical error: malformed number, a digit is required after the decimal point.
 memory leaks:	0

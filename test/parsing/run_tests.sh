@@ -128,14 +128,19 @@ for file in cases/*.json ; do
   testName=$(echo $fileShort | sed -e 's/\.json$//')
 
   ${echo} $n " test ($testName): $c"
-  iter=1
+  iter=0
   success="SUCCESS"
 
   # ${echo} $n "${testBinShort} ${allowPartials}${allowComments}${allowGarbage}${allowMultiple}-b ${iter} < ${fileShort} > ${fileShort}.test : $c"
 
-  # parse with a read buffer size ranging from 1-31 to stress stream parsing
   while [ $iter -lt 32  ] && [ $success = "SUCCESS" ] ; do
-    $testBin $allowPartials $allowComments $allowGarbage $allowMultiple -b $iter < $file > ${OBJDIR:-.}/${fileShort}.test  2>&1
+    if [ $iter -eq 0 ] ; then
+      # run once without -b to exercise standard buffer size
+      $testBin $allowPartials $allowComments $allowGarbage $allowMultiple < $file > ${OBJDIR:-.}/${fileShort}.test  2>&1
+    else
+      # parse with a read buffer size ranging from 1-31 to stress stream parsing
+      $testBin $allowPartials $allowComments $allowGarbage $allowMultiple -b $iter < $file > ${OBJDIR:-.}/${fileShort}.test  2>&1
+    fi
     if [ $? -eq 0 ] ; then
       diff ${DIFF_FLAGS} ${file}.gold ${OBJDIR:-.}/${fileShort}.test > ${OBJDIR:-.}/${fileShort}.out
       if [ $? -eq 0 ] ; then

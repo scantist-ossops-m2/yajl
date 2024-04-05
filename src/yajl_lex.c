@@ -76,9 +76,10 @@ tokToStr(yajl_tok tok)
 
 /*+ the (private) lexer context +*/
 struct yajl_lexer_t {
-    /*+ the current line count +*/
+    /*+ the current line count, counting from 1 +*/
     size_t lineOff;
-    /* the current character offset into the current line (i.e. since the last '\r' or '\n') */
+    /*+ the current character offset, counting from 0, into the current line
+     * (i.e. since the last '\n') */
     size_t charOff;
 
     /*+ error +*/
@@ -105,12 +106,30 @@ struct yajl_lexer_t {
     yajl_alloc_funcs * alloc;
 };
 
-#define readChar(lxr, txt, off)                      \
-    (((lxr)->bufInUse && yajl_buf_len((lxr)->buf) && lxr->bufOff < yajl_buf_len((lxr)->buf)) ? \
-     (*((const unsigned char *) yajl_buf_data((lxr)->buf) + ((lxr)->bufOff)++)) : \
-     ((txt)[(*(off))++]))
+static inline unsigned char
+readChar(yajl_lexer lexer,
+         const unsigned char *jsonText,
+         size_t *offset)
+{
+    if (lexer->bufInUse && yajl_buf_len(lexer->buf) && lexer->bufOff < yajl_buf_len(lexer->buf)) {
+        return (*((const unsigned char *) yajl_buf_data(lexer->buf) + (lexer->bufOff)++));
+    }
+    lexer->charOff++;
 
-#define unreadChar(lxr, off) ((*(off) > 0) ? (*(off))-- : ((lxr)->bufOff--))
+    return (jsonText[(*offset)++]);
+}
+
+static inline void
+unreadChar(yajl_lexer lexer,
+           size_t *offset)
+{
+    if (*offset > 0) {
+        (*offset)--;
+        lexer->charOff--;
+    } else {
+        lexer->bufOff--;
+    }
+}
 
 /*+
  * allocate a lexer context
@@ -130,6 +149,7 @@ yajl_lex_alloc(yajl_alloc_funcs * alloc, /*+ allocator functions, e.g. from yajl
     lxr->allowComments = allowComments;
     lxr->validateUTF8 = validateUTF8;
     lxr->alloc = alloc;
+    lxr->lineOff = 1;
     return lxr;
 }
 
@@ -335,9 +355,12 @@ yajl_lex_string(yajl_lexer lexer,       /*+ the current lexer context +*/
             }
             else if (*offset < jsonTextLen)
             {
+                size_t offinc;
                 p = jsonText + *offset;
                 len = jsonTextLen - *offset;
-                *offset += yajl_string_scan(p, len, lexer->validateUTF8);
+                offinc = yajl_string_scan(p, len, lexer->validateUTF8);
+                *offset += offinc;
+                lexer->charOff += offinc;
             }
         }
 
@@ -372,7 +395,7 @@ yajl_lex_string(yajl_lexer lexer,       /*+ the current lexer context +*/
                 }
             } else if (!(charLookupTable[curChar] & VEC)) {
                 /* back up to offending char */
-                unreadChar(lexer, offset);
+//                unreadChar(lexer, offset);
                 lexer->error = yajl_lex_string_invalid_escaped_char;
                 goto finish_string_lex;
             }
@@ -381,7 +404,7 @@ yajl_lex_string(yajl_lexer lexer,       /*+ the current lexer context +*/
          * if the present character is invalid */
         else if(charLookupTable[curChar] & IJC) {
             /* back up to offending char */
-            unreadChar(lexer, offset);
+//            unreadChar(lexer, offset);
             lexer->error = yajl_lex_string_invalid_json_char;
             goto finish_string_lex;
         }
@@ -412,9 +435,26 @@ yajl_lex_string(yajl_lexer lexer,       /*+ the current lexer context +*/
 
 #define RETURN_IF_EOF if (*offset >= jsonTextLen) return yajl_tok_eof;
 
+/*+
+ * lex a number (integer or floating point).
+ *
+ * a token is returned which has the following meanings:
+ *
+ * yajl_tok_integer: lex of integer was successful.  *offset points to ????.
+ *
+ * yajl_tok_double: lex of double was successful.  *offset points to ????.
+ *
+ * yajl_tok_eof: end of input buffer was encountered before the end of the
+ *               string was found.
+ *
+ * yajl_tok_error: embedded in the string were unallowable chars.  *offset
+ *                 points to the offending char
+ +*/
 static yajl_tok
-yajl_lex_number(yajl_lexer lexer, const unsigned char * jsonText,
-                size_t jsonTextLen, size_t * offset)
+yajl_lex_number(yajl_lexer lexer,
+                const unsigned char *jsonText,
+                size_t jsonTextLen,
+                size_t *offset)
 {
     /*
      * XXX:  numbers are the only entities in json that we must lex
@@ -609,7 +649,6 @@ yajl_lex_lex(yajl_lexer lexer,          /*+ the current lexer context +*/
         }
 
         c = readChar(lexer, jsonText, offset);
-
         switch (c) {
             case '{':
                 tok = yajl_tok_left_bracket;
@@ -629,7 +668,11 @@ yajl_lex_lex(yajl_lexer lexer,          /*+ the current lexer context +*/
             case ':':
                 tok = yajl_tok_colon;
                 goto lexed;
-            case '\t': case '\n': case '\v': case '\f': case '\r': case ' ':
+            case '\n':
+                lexer->lineOff++;
+                lexer->charOff = 0;
+                /* FALLTHROUGH */
+            case '\t': case '\v': case '\f': case '\r': case ' ':
                 startOffset++;
                 break;
             case 't': {
@@ -838,9 +881,18 @@ yajl_lex_get_error(yajl_lexer lexer)    /*+ the current lexer context +*/
 }
 
 /*+
+ * A helper for adjusting the current character offset (for use by the parser)
+ */
+void
+yajl_lex_adjust_charOff(yajl_lexer lexer, intmax_t chg)
+{
+    lexer->charOff = (size_t) ((intmax_t) lexer->charOff + chg);
+}
+
+/*+
  *  A helper for finding the line number of error in the input.
  *
- *  Returns the number of lines lexed by this lexer instance
+ *  Returns the number of lines lexed by this lexer instance, counting from one.
  +*/
 size_t
 yajl_lex_current_line(yajl_lexer lexer) /*+ the current lexer context +*/
@@ -851,13 +903,13 @@ yajl_lex_current_line(yajl_lexer lexer) /*+ the current lexer context +*/
 /*+
  *  A helper for finding the exact context of an error in the input.
  *
- *  get the number of chars lexed by this lexer instance since the last
- *  \n or \r
+ *  Returns the number of chars lexed by this lexer instance since the last
+ *  newline ('\n'), counting from zero.
  +*/
 size_t
 yajl_lex_current_char(yajl_lexer lexer) /*+ the current lexer context +*/
 {
-    return lexer->charOff;
+    return lexer->charOff - 1;          /* the lexer is one ahead at errors */
 }
 
 /*+

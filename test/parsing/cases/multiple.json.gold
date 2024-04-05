@@ -1,4 +1,4 @@
 map open '{'
 map close '}'
-parse error: trailing garbage
+line: 3: offset: 0: parse error: trailing garbage
 memory leaks:	0

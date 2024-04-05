@@ -85,14 +85,54 @@ yajl_render_error_string(yajl_handle hand, const unsigned char * jsonText,
 
     {
         size_t memneeded = 0;
+        size_t line = 0;
+        size_t coff = 0;
+#ifndef MAXULLONG_B10_DIGITS
+# define MAXULLONG_B10_DIGITS	(20)	/* for a 64-bit unsigned long long: 18,446,744,073,709,551,615 */
+#endif
+        char anumber[MAXULLONG_B10_DIGITS];
+
+        /*
+         * N.B.:  the GNU coding standards, as followed by GCC, suggest the
+         * format for error messages indicating line and column should be:
+         *
+         *     file:L:C: message
+         *
+         * However perhaps it makes more sense to indicate what the numbers are
+         * so as to avoid any possible confusion.
+         *
+         * The filename must be added by the caller of course.
+         */
+        memneeded += strlen("line: ");
+        memneeded += sizeof(anumber) - 1;
+
+        memneeded += strlen(": offset: ");
+        memneeded += sizeof(anumber) - 1;
+
+        memneeded += strlen(": ");
+
         memneeded += strlen(errorType);
         memneeded += strlen(" error");
         if (errorText != NULL) {
             memneeded += strlen(": ");
             memneeded += strlen(errorText);
         }
+
         str = (unsigned char *) YA_MALLOC(&(hand->alloc), memneeded + 2);
-        str[0] = 0;
+        str[0] = '\0';
+
+        line = yajl_lex_current_line(hand->lexer);
+        strcat((char *) str, "line: ");
+        snprintf(anumber, sizeof(anumber), "%ju", (intmax_t) line);
+        strcat((char *) str, anumber);
+
+        coff = yajl_lex_current_char(hand->lexer);
+        strcat((char *) str, ": offset: ");
+        snprintf(anumber, sizeof(anumber), "%ju", (intmax_t) coff);
+        strcat((char *) str, anumber);
+
+        strcat((char *) str, ": ");
+
         strcat((char *) str, errorType);
         strcat((char *) str, " error");
         if (errorText != NULL) {
@@ -125,13 +165,13 @@ yajl_render_error_string(yajl_handle hand, const unsigned char * jsonText,
         }
         assert(i <= 71);
         text[i++] = '\n';
-        text[i] = 0;
+        text[i] = '\0';
         {
             char *newStr =
                 YA_MALLOC(&(hand->alloc), (size_t)(strlen((char *) str) +
                                                    strlen((char *) text) +
                                                    strlen(arrow) + 1));
-            newStr[0] = 0;
+            newStr[0] = '\0';
             strcat(newStr, (char *) str);
             strcat(newStr, (char *) text);
             strcat(newStr, arrow);
@@ -463,9 +503,15 @@ yajl_do_parse(yajl_handle hand, const unsigned char * jsonText,
                     yajl_bs_set(hand->stateStack, yajl_state_parse_error);
                     hand->parseError = "after key and value, inside map, "
                                        "I expect ',' or '}'";
+
                     /* try to restore error offset */
-                    if (*offset >= bufLen) *offset -= bufLen;
-                    else *offset = 0;
+                    if (*offset >= bufLen) {
+                        *offset -= bufLen;
+                        yajl_lex_adjust_charOff(hand->lexer, -((intmax_t) bufLen));
+                    } else {
+                        *offset = 0;
+                    }
+
                     goto around_again;
             }
         }
@@ -500,4 +546,3 @@ yajl_do_parse(yajl_handle hand, const unsigned char * jsonText,
     /* NOTREACHED */
     return yajl_status_error;
 }
-

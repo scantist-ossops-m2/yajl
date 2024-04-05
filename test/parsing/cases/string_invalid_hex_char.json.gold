@@ -1,2 +1,2 @@
-lexical error: invalid (non-hex) character occurs after '\u' inside string.
+line: 1: offset: 43: lexical error: invalid (non-hex) character occurs after '\u' inside string.
 memory leaks:	0

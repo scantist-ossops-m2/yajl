@@ -1,2 +1,2 @@
-parse error: unallowed token at this point in JSON text
+line: 1: offset: 0: parse error: unallowed token at this point in JSON text
 memory leaks:	0

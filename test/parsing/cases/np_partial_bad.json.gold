@@ -1,5 +1,5 @@
 array open '['
 string: 'foo'
 string: 'bar'
-parse error: premature EOF
+line: 2: offset: 0: parse error: premature EOF
 memory leaks:	0

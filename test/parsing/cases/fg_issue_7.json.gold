@@ -1,3 +1,3 @@
 integer: 2009
-parse error: trailing garbage
+line: 1: offset: 6: parse error: trailing garbage
 memory leaks:	0
