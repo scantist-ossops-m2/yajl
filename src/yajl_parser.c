@@ -32,7 +32,11 @@
 
 #define MAX_VALUE_TO_MULTIPLY ((LLONG_MAX / 10) + (LLONG_MAX % 10))
 
- /* same semantics as strtol(3) for base=10 */
+/*
+ * same semantics as strtol(3) for base=10
+ *
+ * also used in yajl_tree_parse()'s handle_number() callback
+ */
 long long
 yajl_parse_integer(const unsigned char *number, size_t length)
 {
@@ -60,6 +64,92 @@ yajl_parse_integer(const unsigned char *number, size_t length)
     }
 
     return sign * ret;
+}
+
+static long long int
+yajl_verify_integer(yajl_handle hand,
+                    const unsigned char *buf,
+                    size_t bufLen,
+                    size_t *offset)
+{
+    long long int i = 0;
+
+    errno = 0;
+    i = yajl_parse_integer(buf, bufLen);
+    if (errno) {
+        yajl_bs_set(hand->stateStack, yajl_state_parse_error);
+        if (i == LLONG_MAX) {
+            hand->parseError = "integer overflow";
+        } else {
+            hand->parseError = "integer underflow";
+        }
+
+        /* try to restore error offset */
+        if (*offset >= bufLen) {
+            *offset -= bufLen - 1;
+        } else {
+            *offset = 0;
+        }
+        yajl_lex_adjust_charOff(hand->lexer, -((intmax_t) bufLen - 1));
+
+        return 0;
+    }
+
+    return i;
+}
+
+static double
+yajl_verify_double(yajl_handle hand,
+                   const unsigned char *buf,
+                   size_t bufLen,
+                   size_t *offset)
+{
+    double d = 0.0;
+    char *end;
+
+    /* convert buf to point to a NUL-terminated string */
+    yajl_buf_clear(hand->decodeBuf);
+    yajl_buf_append(hand->decodeBuf, buf, bufLen);
+    buf = yajl_buf_data(hand->decodeBuf);
+
+    errno = 0;
+    /* XXX is INF or INFINITY, or NAN, valid in JSON? */
+    d = strtod((const char *) buf, &end);
+    /*
+     * these 'end' checks should be prevented from triggering by the lexer
+     * having pre-validated the token, but double-check!
+     */
+    if (end == (const char *) buf) {
+        yajl_bs_set(hand->stateStack, yajl_state_parse_error);
+        hand->parseError = "invalid numeric (floating point), invalid syntax";
+    }
+    if (end[0] != '\0') {
+        yajl_bs_set(hand->stateStack, yajl_state_parse_error);
+        hand->parseError = "invalid numeric (floating point), trailing garbage";
+    }
+    if ((d == HUGE_VAL || d == -HUGE_VAL) && errno == ERANGE) {
+        yajl_bs_set(hand->stateStack, yajl_state_parse_error);
+        hand->parseError = "numeric (floating point) overflow";
+    } else if (errno == ERANGE) {
+        yajl_bs_set(hand->stateStack, yajl_state_parse_error);
+        hand->parseError = "numeric (floating point) underflow";
+    } else if (errno) {
+        yajl_bs_set(hand->stateStack, yajl_state_parse_error);
+        hand->parseError = "invalid numeric (floating point), unknown error";
+    }
+    if (errno) {
+        /* try to restore error offset */
+        if (*offset >= bufLen) {
+            *offset -= bufLen - 1;
+        } else {
+            *offset = 0;
+        }
+        yajl_lex_adjust_charOff(hand->lexer, -((intmax_t) bufLen - 1));
+
+        return 0.0;
+    }
+
+    return d;
 }
 
 unsigned char *
@@ -324,24 +414,20 @@ yajl_do_parse(yajl_handle hand, const unsigned char * jsonText,
                     if (hand->callbacks) {
                         if (hand->callbacks->yajl_number) {
                             _CC_CHK(hand->callbacks->yajl_number(
-                                        hand->ctx,(const char *) buf, bufLen));
+                                        hand->ctx, (const char *) buf, bufLen));
                         } else if (hand->callbacks->yajl_integer) {
-                            long long int i = 0;
-                            errno = 0;
-                            i = yajl_parse_integer(buf, bufLen);
-                            if ((i == LLONG_MIN || i == LLONG_MAX) &&
-                                errno == ERANGE)
-                            {
-                                yajl_bs_set(hand->stateStack,
-                                            yajl_state_parse_error);
-                                hand->parseError = "integer overflow" ;
-                                /* try to restore error offset */
-                                if (*offset >= bufLen) *offset -= bufLen;
-                                else *offset = 0;
+                            long long int i;
+
+                            i = yajl_verify_integer(hand, buf, bufLen, offset);
+                            if (errno) {
                                 goto around_again;
                             }
-                            _CC_CHK(hand->callbacks->yajl_integer(hand->ctx,
-                                                                  i));
+                            _CC_CHK(hand->callbacks->yajl_integer(hand->ctx, i));
+                        }
+                    } else {
+                        (void) yajl_verify_integer(hand, buf, bufLen, offset);
+                        if (errno) {
+                            goto around_again;
                         }
                     }
                     break;
@@ -351,26 +437,18 @@ yajl_do_parse(yajl_handle hand, const unsigned char * jsonText,
                             _CC_CHK(hand->callbacks->yajl_number(
                                         hand->ctx, (const char *) buf, bufLen));
                         } else if (hand->callbacks->yajl_double) {
-                            double d = 0.0;
-                            yajl_buf_clear(hand->decodeBuf);
-                            yajl_buf_append(hand->decodeBuf, buf, bufLen);
-                            buf = yajl_buf_data(hand->decodeBuf);
-                            errno = 0;
-                            d = strtod((const char *) buf, NULL);
-                            if ((d == HUGE_VAL || d == -HUGE_VAL) &&
-                                errno == ERANGE)
-                            {
-                                yajl_bs_set(hand->stateStack,
-                                            yajl_state_parse_error);
-                                hand->parseError = "numeric (floating point) "
-                                    "overflow";
-                                /* try to restore error offset */
-                                if (*offset >= bufLen) *offset -= bufLen;
-                                else *offset = 0;
+                            double d;
+
+                            d = yajl_verify_double(hand, buf, bufLen, offset);
+                            if (errno) {
                                 goto around_again;
                             }
-                            _CC_CHK(hand->callbacks->yajl_double(hand->ctx,
-                                                                 d));
+                            _CC_CHK(hand->callbacks->yajl_double(hand->ctx, d));
+                        }
+                    } else {
+                        (void) yajl_verify_double(hand, buf, bufLen, offset);
+                        if (errno) {
+                            goto around_again;
                         }
                     }
                     break;
