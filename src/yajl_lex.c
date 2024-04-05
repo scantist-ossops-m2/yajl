@@ -37,6 +37,7 @@ tokToStr(yajl_tok tok)
         case yajl_tok_bool: return "bool";
         case yajl_tok_colon: return "colon";
         case yajl_tok_comma: return "comma";
+        case yajl_tok_comment: return "comment";
         case yajl_tok_eof: return "eof";
         case yajl_tok_error: return "error";
         case yajl_tok_left_brace: return "brace";
