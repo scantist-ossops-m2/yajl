@@ -29,7 +29,7 @@ typedef enum {
     yajl_tok_bool,
     yajl_tok_colon,
     yajl_tok_comma,
-    yajl_tok_eof,
+    yajl_tok_eof,                       /* means end-of-buffer */
     yajl_tok_error,
     yajl_tok_left_brace,
     yajl_tok_left_bracket,

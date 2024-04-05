@@ -216,7 +216,7 @@ static const char charLookupTable[256] =
  *    yajl_tok_string - if valid utf8 char was parsed and offset was
  *                      advanced
  *
- *    yajl_tok_eof - if end of input was hit before validation could
+ *    yajl_tok_eof - if end of input buffer was hit before validation could
  *                   complete
  *
  *    yajl_tok_error - if invalid utf8 was encountered
@@ -301,11 +301,11 @@ yajl_string_scan(const unsigned char * buf, size_t len, /* bool */ int utf8check
  * yajl_tok_string: lex of string was successful.  offset points to
  *                  terminating '"'.
  *
- * yajl_tok_eof: end of text was encountered before we could complete
- *               the lex.
+ * yajl_tok_eof: end of input buffer was encountered before the end of the
+ *               string was found.
  *
  * yajl_tok_error: embedded in the string were unallowable chars.  offset
- *               points to the offending char
+ *                 points to the offending char
  +*/
 static yajl_tok
 yajl_lex_string(yajl_lexer lexer,       /*+ the current lexer context +*/
