@@ -135,10 +135,10 @@ yajl_lex_alloc(yajl_alloc_funcs * alloc, /*+ allocator functions, e.g. from yajl
 
 /*+ free a lexer context +*/
 void
-yajl_lex_free(yajl_lexer lxr)           /*+ the lexer context to free +*/
+yajl_lex_free(yajl_lexer lexer)           /*+ the lexer context to free +*/
 {
-    yajl_buf_free(lxr->buf);
-    YA_FREE(lxr->alloc, lxr);
+    yajl_buf_free(lexer->buf);
+    YA_FREE(lexer->alloc, lexer);
     return;
 }
 
