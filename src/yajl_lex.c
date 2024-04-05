@@ -266,11 +266,11 @@ yajl_lex_utf8_char(yajl_lexer lexer,
     return yajl_tok_error;
 }
 
-#define STR_CHECK_EOF \
-if (*offset >= jsonTextLen) { \
-   tok = yajl_tok_eof; \
-   goto finish_string_lex; \
-}
+#define STR_CHECK_EOF                                                   \
+    if (*offset >= jsonTextLen) {                                       \
+        tok = yajl_tok_eof;                                             \
+        goto finish_string_lex;                                         \
+    }
 
 /*+
  *  scan a string for interesting characters that might need further
