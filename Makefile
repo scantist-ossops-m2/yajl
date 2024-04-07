@@ -150,6 +150,55 @@
 # See the first use of .WAIT below for comments about really old BMakes and
 # Mk-files that don't deal with it properly.
 #
+# Note if you see the warning "duplicate script for target "yajl-showenv"
+# ignored" (and its matching warning about the first definition), then you're
+# using a version of BMake (and its Mk-files) that has some critical bugs which
+# cannot be worked around (probably from between ???????? and 20200911).  The
+# quickest fix is to remove an errant line in the file <subdir.mk> by applying
+# the first hunk of this patch.  The remaining hunks fix parallel installs (this
+# patch is against 20240404, and the next release after it may include all of
+# these fixes):
+#
+#	--- mk/subdir.mk~	2024-02-25 11:22:39.000000000 -0800
+#	+++ mk/subdir.mk	2024-03-28 05:30:17.744502242 -0700
+#	@@ -37,7 +37,7 @@ __${_this}__: .NOTMAIN
+#	 _SUBDIRUSE:
+#	 .elif !commands(_SUBDIRUSE) && !defined(NO_SUBDIR) && !defined(NOSUBDIR)
+#	 .-include <local.subdir.mk>
+#	-.-include <${.CURDIR}/Makefile.inc>
+#	+
+#	 .if !target(.MAIN)
+#	 .MAIN: all
+#	 .endif
+#	@@ -63,7 +63,7 @@ _SUBDIR_USE: .USE
+#	 	else \
+#	 		_nextdir_="$${_THISDIR_}/$$_dir"; \
+#	 	fi; \
+#	-	${ECHO_DIR} "===> $${_nextdir_} ($$_target)"; \
+#	+	${ECHO_DIR} "===> $${_nextdir_} (${.TARGET} => $$_target)"; \
+#	 	(cd ${.CURDIR}/$$_dir && \
+#	 		${.MAKE} _THISDIR_="$${_nextdir_}" $$_target)
+#	 
+#	@@ -82,7 +82,7 @@ realinstall: beforeinstall _SUBDIRUSE
+#	 
+#	 # the interface from others
+#	 # this may require additions to SUBDIR_TAREGTS
+#	-_SUBDIRUSE: .USE subdir-${.TARGET}
+#	+_SUBDIRUSE: .USE subdir-${.TARGET:C/-.*//:S/real//:S/.depend/depend/}
+#	 
+#	 SUBDIR_TARGETS += \
+#	 	all \
+#	@@ -93,7 +93,6 @@ SUBDIR_TARGETS += \
+#	 	depend \
+#	 	lint \
+#	 	obj \
+#	-	realinstall \
+#	 	tags \
+#	 	etags
+#	 
+#
+# See the further discussion in src/Makefile.inc.
+#
 #####################
 #
 # More about using $MAKEOBJDIRPREFIX:
