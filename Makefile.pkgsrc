@@ -12,7 +12,7 @@ CATEGORIES=	devel textproc
 # for use of ${FILESDIR} (as per "make setup-pkgsrc" below):
 DISTFILES=	# empty
 #
-# else (and remove do-extract):
+# else (and remove the do-extract target and commands):
 #MASTER_SITES=	${MASTER_SITE_GITHUB:=robohack/}
 #GITHUB_TAG=	bsdmake-2.${PKGREVISION}	# xxx also release-2.${PKGREVISION}
 
@@ -117,7 +117,6 @@ do-configure:
 #	# commit anything outstanding...
 #	mkdir build
 #	make MAKEOBJDIRPREFIX=$(pwd)/build all regress
-#	mkdir dist
 #	make MAKEOBJDIRPREFIX=$(pwd)/build DESTDIR=$(pwd)/dist install
 #	# check dist/* is correct...
 #	rm -rf build dist
@@ -126,8 +125,9 @@ do-configure:
 #	git tag bsdmake-2.${PKGREVISION}	# from above
 #	cp Makefile.pkgsrc /usr/pkgsrc/devel/yajl/Makefile
 #	cd /usr/pkgsrc/devel/yajl
+#
 #	make REPODIR=$OLDPWD setup-pkgsrc
-#	make [install|update]
+#	make [install|update|replace]
 #
 REPODIR ?=	/work/woods/f-yajl
 setup-pkgsrc:
