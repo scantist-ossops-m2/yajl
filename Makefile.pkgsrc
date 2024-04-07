@@ -2,11 +2,10 @@
 # $NetBSD$
 
 # N.B.:  though this version of YAJL is diverging from the original, as yet it
-# has no API (nor, so far as is known, any ABI) differences, thus is still
-# "2.1.0"
+# has only backward-compatible API, and no known ABI, differences.
 
-PKGNAME=	yajl-2.1.0
-PKGREVISION=	2
+PKGNAME=	yajl-2.2.90
+PKGREVISION=	0
 CATEGORIES=	devel textproc
 
 # for use of ${FILESDIR} (as per "make setup-pkgsrc" below):

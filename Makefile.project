@@ -17,6 +17,10 @@ PACKAGE =	yajl
 #
 INCSUBDIR =	/yajl
 
+# Attempts will/should be made to conform to Semantic Versioning rules:
+#
+#	https://semver.org/
+#
 LIB_MAJOR =	2
-LIB_MINOR =	1
-LIB_MICRO =	0
+LIB_MINOR =	2
+LIB_MICRO =	90
