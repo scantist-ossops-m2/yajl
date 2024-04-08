@@ -36,9 +36,6 @@ yajl.pc: ${.CURDIR}/yajl.pc.in
 	    -e 's|@LIBDIR@|${LIBDIR}|' \
 	< ${.CURDIR}/yajl.pc.in > ${.TARGET}
 
-yajl.pc: ${.CURDIR}/Makefile
-yajl.pc: ${.CURDIR}/${bmake_topdir}/Makefile.inc
-
 # FILES are not't automatically added on OSX/Darwin, FreeBSD, etc.
 #
 CLEANFILES += yajl.pc
@@ -74,9 +71,6 @@ yajl/yajl_version.h: ${.CURDIR}/yajl/yajl_version.h.in
 	    -e 's/$${LIB_MINOR}/${LIB_MINOR}/' \
 	    -e 's/$${LIB_MICRO}/${LIB_MICRO}/' \
 	< ${.CURDIR}/yajl/yajl_version.h.in > ${.TARGET}
-
-yajl/yajl_version.h: ${.CURDIR}/Makefile
-yajl/yajl_version.h: ${.CURDIR}/${bmake_topdir}/Makefile.inc
 
 # n.b.:  some variants of "make install" may (re)move ${FILES}, so a second
 # "make" after an install will fail!
@@ -242,6 +236,16 @@ ${DESTDIR}${LIBDIR}/lib${LIB}.dylib:
 
 . endif # !sjg
 .endif
+
+# n.b.: ${bmake_topdir} is not defined until after the .include above, but must
+# be defined at the time of dependency declaration!
+#
+yajl.pc: ${.CURDIR}/Makefile
+yajl.pc: ${.CURDIR}/${bmake_topdir}/Makefile.project
+yajl.pc: ${.CURDIR}/${bmake_topdir}/Makefile.inc
+yajl/yajl_version.h: ${.CURDIR}/Makefile
+yajl/yajl_version.h: ${.CURDIR}/${bmake_topdir}/Makefile.project
+yajl/yajl_version.h: ${.CURDIR}/${bmake_topdir}/Makefile.inc
 
 # note to do a local rebuild you can also do:  MAKEOBJDIRPREFIX=../build make
 #
