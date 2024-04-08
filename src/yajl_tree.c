@@ -94,8 +94,10 @@ static void yajl_object_free (yajl_val v)
 
     for (i = 0; i < v->u.object.len; i++)
     {
-        /* __UNCONST() */
-        YA_FREE(yajl_tree_parse_afs, (void *)(uintmax_t)(const void *) v->u.object.keys[i]);
+# ifndef __UNCONST
+#  define __UNCONST(a)    ((void *)(uintmax_t)(const void *)(a))
+# endif
+        YA_FREE(yajl_tree_parse_afs, __UNCONST(v->u.object.keys[i]));
         v->u.object.keys[i] = NULL;
         yajl_tree_free (v->u.object.values[i]);
         v->u.object.values[i] = NULL;
