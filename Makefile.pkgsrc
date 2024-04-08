@@ -1,19 +1,13 @@
 # -*- makefile-bsdmake -*-
 # $NetBSD$
 
-# N.B.:  though this version of YAJL is diverging from the original, as yet it
-# has only backward-compatible API, and no known ABI, differences.
-
-PKGNAME=	yajl-2.2.90
-PKGREVISION=	0
+DISTNAME=	yajl-2.2.90
+#PKGREVISION=	0
 CATEGORIES=	devel textproc
 
-# for use of ${FILESDIR} (as per "make setup-pkgsrc" below):
-DISTFILES=	# empty
-#
-# else (and remove the do-extract target and commands):
-#MASTER_SITES=	${MASTER_SITE_GITHUB:=robohack/}
-#GITHUB_TAG=	bsdmake-2.${PKGREVISION}	# xxx also release-2.${PKGREVISION}
+MASTER_SITES=		${MASTER_SITE_GITHUB:=robohack/}
+#GITHUB_PROJECT=	yajl
+GITHUB_TAG=		release-${PKGVERSION_NOREV}
 
 OWNER=		woods@planix.ca
 HOMEPAGE=	http://robohack.github.com/${PKGBASE}/
@@ -23,7 +17,7 @@ LICENSE=	modified-bsd
 
 BUILD_DEPENDS+=	cxref-[0-9]*:../../devel/cxref
 
-USE_LANGUAGES=		c
+USE_LANGUAGES=		c c99
 
 USE_BSD_MAKEFILE=	yes
 BSD_MAKE_BUILD_DIR=	${WRKDIR}/pkgbuild
@@ -53,10 +47,10 @@ AUTO_MKDIRS=		yes
 # totally automatic PLIST generation -- probably preferable?
 #
 #GENERATE_PLIST=	cd ${DESTDIR}${PREFIX}; \
-#		${FIND} * \( -type f -or -type l \) | ${SORT};
+#			${FIND} * \( -type f -or -type l \) | ${SORT};
 #
 GENERATE_PLIST+=	cd ${DESTDIR}${PREFIX} && \
-		${FIND} share/doc/${PKGBASE}/html \( -type f -or -type l \) | ${SORT};
+			${FIND} share/doc/${PKGBASE}/html \( -type f -or -type l \) | ${SORT};
 
 .include "../../mk/bsd.prefs.mk"
 
@@ -91,13 +85,8 @@ PLIST.mkpic=		yes
 
 PLIST_VARS+=		mkprofile
 .if ${MKPROFILE:Uno:tl} != "no"
-PLIST.mkprofile= yes
+PLIST.mkprofile=	yes
 .endif
-
-do-extract:
-	${MKDIR} ${WRKSRC}
-	${CP} -Rp ${FILESDIR}/* ${WRKSRC}/
-	${RM} -rf ${WRKSRC}/CVS
 
 do-configure:
 	${MKDIR} ${BSD_MAKE_BUILD_DIR}
@@ -108,36 +97,30 @@ do-configure:
 
 # how to get from there to here....
 #
-# Go to where you have cloned https://github.com/robohack/yajl to, copy this
-# Makefile into your $pkgsrc/devel/yajl directory, go there, and build this
-# target:
-#
 #	git status
 #	# commit anything outstanding...
 #	mkdir build
-#	make MAKEOBJDIRPREFIX=$(pwd)/build all regress
-#	make MAKEOBJDIRPREFIX=$(pwd)/build DESTDIR=$(pwd)/dist install
-#	# check dist/* is correct...
+#	make -j 8 MAKEOBJDIRPREFIX=$(pwd -P)/build all regress
+#	make -j 8 MAKEOBJDIRPREFIX=$(pwd -P)/build DESTDIR=$(pwd -P)/dist install
+#	# check dist/* is correct... (bins, lib names, includes, .pc file, etc.)
 #	rm -rf build dist
 #	make distclean
-#	# update PKGREVISION above...
-#	git tag bsdmake-2.${PKGREVISION}	# from above
-#	cp Makefile.pkgsrc /usr/pkgsrc/devel/yajl/Makefile
-#	cd /usr/pkgsrc/devel/yajl
+#	# update DISTNAME above and LIB_* in Makefile.project...
+#	git add Makefile.project Makefile.pkgsrc
+#	git commit -m 'Makefile.project, Makefile.pkgsrc: ready for release: ${PKGVERSION_NOREV}'
+#	# write release notes in doc/release-${PKGVERSION_NOREV}.md
+#	git tag -a -s -F doc/release-${PKGVERSION_NOREV}.md release-${PKGVERSION_NOREV}
+#	gh release create release-${PKGVERSION_NOREV} -t "Version ${PKGVERSION_NOREV}" --verify-tag --notes-from-tag
 #
-#	make REPODIR=$OLDPWD setup-pkgsrc
-#	make [install|update|replace]
+# Now go to where your ${REPODIR} (or where you have cloned
+# https://github.com/robohack/yajl to), and 'make setup-pkgsrc':
 #
-REPODIR ?=	/work/woods/f-yajl
+REPODIR?=	.	# /work/woods/f-yajl
+PKGDIR?=	/usr/pkgsrc/devel/yajl
 setup-pkgsrc:
-	find ${FILESDIR} -type d \( -name CVS -or -name .git -or -name .svn \) -prune -or -type f ! -name '.*ignore' -print0 | xargs -0 rm
-	cd ${REPODIR} && find . \( -type d \( -name debian -or -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name 'd[ei]st' -or -name 'd[ei]st-*' \) -prune \) -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -print | pax -rw ${FILESDIR}
-	mv ${FILESDIR}/DESCR.pkgsrc ${PKGDIR}/DESCR
-	mv ${FILESDIR}/Makefile.pkgsrc ${PKGDIR}/Makefile
-	mv ${FILESDIR}/PLIST.pkgsrc ${PKGDIR}/PLIST
-	mv ${FILESDIR}/buildlink3.mk.pkgsrc ${PKGDIR}/buildlink3.mk
-	make fetch
-	make makesum
+	cd ${REPODIR} && pax -rw -v -s '|.pkgsrc$||' *.pkgsrc ${PKGDIR}
+	cd ${PKGDIR} && make fetch
+	cd ${PKGDIR} && make makesum
 
 .include "../../mk/bsd.pkg.mk"
 
