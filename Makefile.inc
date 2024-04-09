@@ -64,7 +64,7 @@ bmake_topdir = ..
 #	.include "../Makefile.inc"
 #	bmake_topdir := ${bmake_topdir}/..
 
-.if !target(yajl-showenv)
+.if !target(_GAW_bmake-showenv)
 
 # include any project-specific settings
 #
@@ -366,9 +366,9 @@ docs: .PHONY
 
 # Makefile debugging support
 #
-showenv: yajl-showenv .PHONY
+showenv: _GAW_bmake-showenv .PHONY
 
-yajl-showenv: .PHONY
+_GAW_bmake-showenv: .PHONY
 	@echo "" ; \
 	echo "bmake_topdir = '${bmake_topdir}'"; \
 	echo "${.OBJDIR}/${bmake_topdir}/src"; \
@@ -398,7 +398,7 @@ yajl-showenv: .PHONY
 	echo "FILES_COPY = ${FILES_COPY:Q}"; \
 	echo ""
 
-.endif # !target(yajl-showenv)
+.endif # !target(_GAW_bmake-showenv)
 
 #
 # Local Variables:
