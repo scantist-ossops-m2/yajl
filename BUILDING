@@ -45,7 +45,7 @@ NOTES:
   found at https://www.gedanken.org.uk/software/cxref/
 
   If you do not have "cxref" installed you can disable the creation of
-  HTML documentation (and its install) by setting "MKDOC=no":
+  HTML documentation (and its install) by setting "CXREF=true":
 
-	MAKEOBJDIRPREFIX=$(pwd -P)/build bmake MKDOC=no
+	MAKEOBJDIRPREFIX=$(pwd -P)/build bmake CXREF=true
 	MAKEOBJDIRPREFIX=$(pwd -P)/build bmake PREFIX=/usr/local MKDOC=no

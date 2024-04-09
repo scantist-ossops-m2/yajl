@@ -66,27 +66,6 @@
 #
 #####################
 #
-# Building Documentation:
-#
-# The documentation is all currently within comments in the source code and we
-# use Cxref to extract it and turn it into something more useful and coherent,
-# which by default is a set of HTML pages.  This has the added advantage of
-# providing a comprehensive hyperlinked cross-reference of all the types and
-# functions in all of the source files.
-#
-# If your BMake system defined MKDOC, but you do not have Cxref, you can disable
-# the building and installation of the HTML documentation by setting "MKDOC=no"
-# on the BMake command line or in the environment, or by uncommenting the
-# following line, or by setting CXREF=true on the BMake command line:
-#
-#MKDOC = no
-#
-# Cxref can be found at:  https://www.gedanken.org.uk/software/cxref/
-#
-# It is included in Homebrew and a package is available for Ubuntu Linux.
-#
-#####################
-#
 # Special Notes for Special Systems:
 #
 # NetBSD:

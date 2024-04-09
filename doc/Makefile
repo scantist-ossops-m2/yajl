@@ -1,24 +1,7 @@
 # -*- makefile-bsdmake -*-
 
-# xxx this is a bit ugly, but we need to define some targets before including
-# <bsd.prog.mk>, and yet we also need to use MKDOC, and that's in <bsd.own.mk>,
-# but to include that we must include our own Makefile.inc first...
-#
-.include "../Makefile.inc"
-.include <bsd.own.mk>
-
 #
 # Now some special hooks for building YAJL's API documentation.
-#
-# n.b.:  Use of ${MKDOC} must come after an include of <bsd.own.mk>
-#
-.if !defined(MKDOC) || empty(MKDOC:M[Nn][Oo])
-#
-# Note that here we're using MKDOC only to control HTML docs -- not to control
-# the install of the basic README and COPYING files, etc.  This may not be
-# standard use, but we're really only using it to avoid needing Cxref to build.
-#
-# Alternatively one can set CXREF=true on the command line or in the environ.
 #
 # N.B.:  Cxref requires two passes of each file, the first to build up the cross
 #        referencing files and the second to use them.  Headers have to be done
@@ -72,8 +55,6 @@ html/yajl.apdx.html: yajl.cxref # html
 	done; \
 	${CXREF} -R.. -index-all -O${.OBJDIR}/html -N${PACKAGE} -html
 	ln -fs doc/yajl.cxref.html ${.OBJDIR}/html/index.html
-
-.endif	# ${MKDOC} != "no"
 
 # n.b.:  we always install these documentation files -- they do not have to be
 # built or transformed from their original source form
