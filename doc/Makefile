@@ -93,7 +93,7 @@ install-docs:: .PHONY ${DOCFILES:S|^|${.CURDIR}/../|}
 afterinstall: .PHONY install-docs # maninstall
 
 # N.B.:  we don't use <bsd.doc.mk> -- it does nothing useful for us for now, and
-# it causes headaches with Crufty's Mk-files, and possibly FreeBSD too....
+# it causes headaches with sjg's Mk-files, and possibly FreeBSD too....
 #
 # xxx we really only want <bsd.files.mk>, but that can't be included directly on
 # FreeBSD (and some don't include <bsd.obj.mk> either), and so the best common
@@ -106,6 +106,6 @@ afterinstall: .PHONY install-docs # maninstall
 .depend:
 	touch ${.TARGET}
 .endif
-.if !target(install)
-install: .PHONY realinstall
-.endif
+#.if !target(install)
+#install: .PHONY realinstall
+#.endif
