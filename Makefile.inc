@@ -375,6 +375,12 @@ _GAW_bmake-showenv: .PHONY
 	if [ -d "${.OBJDIR}/${bmake_topdir}/src" ]; then \
 		echo "the directory shown above exists!"; \
 	fi; \
+	echo "Makefile.inc: ${.CURDIR}/${bmake_topdir}/Makefile.inc"; \
+	if [ -f "${.CURDIR}/${bmake_topdir}/Makefile.inc" ]; then \
+		echo "the file shown above exists!"; \
+	else \
+		echo "Where is ${.CURDIR}/${bmake_topdir}/Makefile.inc?"; \
+	fi; \
 	echo ""; \
 	echo "Some Interesting Vars:"; \
 	echo "unix = ${unix:Q}"; \
@@ -394,6 +400,7 @@ _GAW_bmake-showenv: .PHONY
 	echo "MKLINT = ${MKLINT:Q}"; \
 	echo "LDADD = ${LDADD:Q}"; \
 	echo "DPADD = ${DPADD:Q}"; \
+	echo "MANDIR = ${MANDIR:Q}"; \
 	echo "INC_COPY = ${INC_COPY:Q}"; \
 	echo "FILES_COPY = ${FILES_COPY:Q}"; \
 	echo ""
