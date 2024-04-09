@@ -260,6 +260,11 @@
 #
 # Sub-directories of the project
 #
+# XXX to keep this Makefile generic it might be possible to define all subdirs
+# in something like project_SUBDIR in Makefile.project, complete with any
+# necessary .WAIT entries, then iterate through it here and remove .WAIT based
+# on the (il)logic below.
+#
 
 SUBDIR =	src
 
@@ -394,18 +399,6 @@ bmake-test-obj: .PHONY
 # .for lists, e.g. the directories for bmake_install_dirs just below.
 #
 .include "${.CURDIR}/Makefile.inc"
-
-bmake_install_dirs += ${BINDIR}
-bmake_install_dirs += ${INCSDIR}
-bmake_install_dirs += ${LIBDIR}
-bmake_install_dirs += ${PKGCONFIGDIR}
-# these DEBUGDIR ones could/should maybe depend on MKDEBUGLIB, but that's only
-# defined after a .include <bsd.*.mk> below....
-bmake_install_dirs += ${DEBUGDIR}/${PREFIX}/bin
-bmake_install_dirs += ${DEBUGDIR}/${PREFIX}/lib
-bmake_install_dirs += ${DOCDIR}/${PACKAGE}
-bmake_install_dirs += ${DOCDIR}/${PACKAGE}/html/
-#bmake_install_dirs += ${MANDIR} # xxx there are no manual pages, yet...
 
 beforeinstall: _bmake_install_dirs
 
