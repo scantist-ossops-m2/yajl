@@ -101,6 +101,12 @@ afterinstall: .PHONY install-docs # maninstall
 #
 .include <bsd.prog.mk>
 
+# in case there are ever any manual pages....
+.if defined(.FreeBSD) && ${.FreeBSD} == "true"
+# xxx unlike _everyone_ else they only append the section value!
+MANDIR := ${MANDIR}/man
+.endif
+
 # work-arounds for sjg's Mk-files
 .if !target(.depend)
 .depend:
