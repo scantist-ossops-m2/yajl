@@ -79,7 +79,7 @@ struct yajl_lexer_t {
     /*+ the current line count, counting from 1 +*/
     size_t lineOff;
     /*+ the current character offset, counting from 0, into the current line
-     * (i.e. since the last '\n') */
+     * (i.e. since the last '\n') +*/
     size_t charOff;
 
     /*+ error +*/
@@ -882,7 +882,7 @@ yajl_lex_get_error(yajl_lexer lexer)    /*+ the current lexer context +*/
 
 /*+
  * A helper for adjusting the current character offset (for use by the parser)
- */
+ +*/
 void
 yajl_lex_adjust_charOff(yajl_lexer lexer, intmax_t chg)
 {
