@@ -9,7 +9,7 @@ on:
 
 jobs:
   regressionTest:
-    name: "${{ matrix.os }} ${{ matrix.make }} CC=${{ matrix.cc }} ${{ matrix.sanitizer }}=yes MKDOC=${{ matrix.docs }}"
+    name: "${{ matrix.os }} ${{ matrix.make }} CC=${{ matrix.cc }} ${{ matrix.sanitizer }}=yes CXREF=${{ matrix.docs }}"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -21,12 +21,14 @@ jobs:
         cc: [ gcc, clang ]
         make: [ bmake, make ]
         sanitizer: [ NO_SANI, USE_ASAN, USE_UBSAN, USE_LEAKSAN ]
-        docs: [ yes, no ]
+        docs: [ cxref, true ]
         # XXX this isn't the ideal way to handle a binary option?
         parallel: [ '-j 3', '' ]
         exclude:
         #
         # N.B.:  here we _EXCLUDE_ the matrix options we don't want!
+        #
+        # xxx Travis has "include:", does it work here?
         #
         # MacOS-11.x
         - os: macos-11
@@ -36,7 +38,7 @@ jobs:
           # make is gmake
           make: make
         - os: macos-11
-          docs: yes
+          docs: cxref
         - os: macos-11
           parallel: ''
         #
@@ -48,7 +50,7 @@ jobs:
           # make is gmake
           make: make
         - os: macos-12
-          docs: yes
+          docs: cxref
         - os: macos-12
           parallel: ''
         #
@@ -60,7 +62,7 @@ jobs:
           # make is gmake
           make: make
         - os: macos-13
-          docs: yes
+          docs: cxref
         - os: macos-13
           parallel: ''
         #
@@ -72,7 +74,7 @@ jobs:
           # make is gmake
           make: make
         - os: macos-14
-          docs: yes
+          docs: cxref
         - os: macos-14
           parallel: ''
         #
@@ -84,7 +86,7 @@ jobs:
           # make is gmake
           make: make
         - os: macos-latest
-          docs: yes
+          docs: cxref
         - os: macos-latest
           parallel: ''
         #
@@ -93,7 +95,7 @@ jobs:
           # it's gmake
           make: make
         - os: ubuntu-22.04
-          docs: no
+          docs: true
         - os: ubuntu-22.04
           parallel: ''
         #
@@ -104,7 +106,7 @@ jobs:
         - os: ubuntu-20.04
           # cxref trips an error in a system header
           # /usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h:21: cxref: syntax error, unexpected IDENTIFIER, expecting ')'
-          docs: yes
+          docs: cxref
         - os: ubuntu-20.04
           # BMake 20181221 seems to run SUBDIR in parallel, but doesn't
           # support .WAIT in the list!
@@ -120,7 +122,7 @@ jobs:
           # it's gmake
           make: make
         - os: ubuntu-latest
-          docs: no
+          docs: true
         - os: ubuntu-latest
           parallel: ''
         #
@@ -131,7 +133,7 @@ jobs:
         - os: netbsd-latest
           cc: clang
         - os: netbsd-latest
-          docs: no
+          docs: true
         - os: netbsd-latest
           parallel: ''
     steps:
@@ -173,16 +175,16 @@ jobs:
         env | sort
     - name: build
       run: |
-        MAKEOBJDIRPREFIX=$(pwd -P)/build ${{ matrix.make }} ${{ matrix.parallel }} CC=${{ matrix.cc }} ${{ matrix.sanitizer }}=yes MKDOC=${{ matrix.docs }}
+        MAKEOBJDIRPREFIX=$(pwd -P)/build ${{ matrix.make }} ${{ matrix.parallel }} CC=${{ matrix.cc }} ${{ matrix.sanitizer }}=yes CXREF=${{ matrix.docs }}
     - name: distribution without parallel
       # XXX BMake does not seem to handle parallel installs well yet....
       if: ${{ startsWith(matrix.make, 'bmake') }}
       run: |
-        MAKEOBJDIRPREFIX=$(pwd -P)/build ${{ matrix.make }} install MKDOC=${{ matrix.docs }} DESTDIR=$(pwd -P)/dist
+        MAKEOBJDIRPREFIX=$(pwd -P)/build ${{ matrix.make }} install CXREF=${{ matrix.docs }} DESTDIR=$(pwd -P)/dist
     - name: distribution in parallel
       if: ${{ ! startsWith(matrix.make, 'bmake') }}
       run: |
-        MAKEOBJDIRPREFIX=$(pwd -P)/build ${{ matrix.make }} ${{ matrix.parallel }} install MKDOC=${{ matrix.docs }} DESTDIR=$(pwd -P)/dist
+        MAKEOBJDIRPREFIX=$(pwd -P)/build ${{ matrix.make }} ${{ matrix.parallel }} install CXREF=${{ matrix.docs }} DESTDIR=$(pwd -P)/dist
     - name: regression
       run: |
-        MAKEOBJDIRPREFIX=$(pwd -P)/build ${{ matrix.make }} ${{ matrix.parallel }} regress MKDOC=${{ matrix.docs }}
+        MAKEOBJDIRPREFIX=$(pwd -P)/build ${{ matrix.make }} ${{ matrix.parallel }} regress CXREF=${{ matrix.docs }}
