@@ -13,6 +13,11 @@
 #
 PACKAGE =	yajl
 
+# this project is all pure standard C
+#
+CSTD = c99
+CWARNFLAGS += -pedantic
+
 # The API says: "#include <yajl/yajl.h>"
 #
 INCSUBDIR =	/yajl
