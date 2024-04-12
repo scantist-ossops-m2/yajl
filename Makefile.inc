@@ -121,10 +121,10 @@ PKGCONFIGDIR ?= ${LIBDIR}/pkgconfig
 #
 # (note:  sjg's BMake puts optimizer flags in DBG)
 #
-# (note:  defaults are set in Makefile.compiler)
+# (note:  defaults are set in Makefile.compiler, or possibly /etc/mk.conf)
 #
-#DBG ?= -g
-#OPTIM ?= -O0
+#DBG ?= -g3
+#OPTIM ?= -O2
 
 # If you are making changes and want to be sure to clean up all warnings....
 #
@@ -138,6 +138,11 @@ PKGCONFIGDIR ?= ${LIBDIR}/pkgconfig
 #
 # Setting LDSTATIC to the linker flag which forces static linking is the easy
 # and best fix on most platforms which support full static linking.
+#
+# This will only have effect on some BSDs, not Darwin/OSX/macOS, nor FreeBSD,
+# and it is added to LDFLAGS by the system mk-files (sys.mk in general, but also
+# <bsd.prog.mk> sometimes.  Note that some of the sanitizers don't work when
+# static-linked.
 #
 #LDSTATIC =	-static
 #
@@ -196,6 +201,21 @@ DPADD += ../${bmake_topdir}/src/${.OBJDIR:T}/lib${PACKAGE:S/^lib//}.a
 . endif
 LDADD += -l${PACKAGE:S/^lib//}_s
 #
+# If we're compiling programs to link with lib${PACKAGE}_s.a then on some
+# systems we cannot compile or link them with -fPIC or -fPIE, so disable that
+# here.
+#
+# Note this normally only affects <bsd.prog.mk> Makefiles, not libs, even if it
+# wasn't wrapped here in ".if !defined(LIB)".
+#
+# Note however that some of the sanitizers don't work when static-linked.
+#
+. if (defined(TARGET_OSNAME) && (${TARGET_OSNAME} == "Darwin")) || defined(.FreeBSD)
+# for both FreeBSD and Mac OS X....
+NO_SHARED = YES
+.else
+NOSHARED = YES
+. endif
 .endif # !defined(LIB)
 
 .if defined(MAKEOBJDIRPREFIX)

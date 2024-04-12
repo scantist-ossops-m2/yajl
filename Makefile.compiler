@@ -1,4 +1,7 @@
 # -*- makefile-bsdmake -*-
+
+#
+#	Makefile.compiler - set CFLAGS et al nicely
 #
 #	This should be included in your project's top-level Makefile.inc after
 #	any include of <bsd.own.mk>
@@ -63,6 +66,18 @@ __clang_patchlevel__ !=	echo __clang_patchlevel__ | $(CC) -E - | sed '/\#/d;s/__
 . endif
 .endif
 
+# borrowed from sjg's Mk-files.
+.if !defined(_HOST_OSNAME)
+# use .MAKE.OS if available
+# avoid :U for older bmakes
+. if !defined(.MAKE.OS)
+_HOST_OSNAME := ${uname -s:L:sh}
+. else
+_HOST_OSNAME := ${.MAKE.OS}
+. endif
+.endif
+#TARGET_OSNAME?= ${_HOST_OSNAME}
+
 # Note:  TARGET_OSNAME is from sjg's Mk-files (host-target.mk, own.mk), and
 # OS is from pkgsrc bootstrap-mk.  .FreeBSD is a trick shared by FreeBSD and old
 # MacOS bsdmake.
@@ -75,8 +90,21 @@ __clang_patchlevel__ !=	echo __clang_patchlevel__ | $(CC) -E - | sed '/\#/d;s/__
 #
 .else
 . if !defined(__GNULD__)
-__GNULD__ !=		$(LD) -v | awk '{print int($$4);}' | tr -d ' \012'
+__GNULD__ !=		$(LD) -v | awk '{print int($$NF);}' | tr -d ' \012'
 . endif
+.endif
+
+# Note:  FreeBSD's mk-files (<bsd.sys.mk>) use this directly, and luckily
+# correctly as it blindly adds its own value to CFLAGS after the one added
+# below....
+#
+CSTD ?= c89
+
+# prevent NetBSD's mk-files from adding -std=gnu99 to CFLAGS
+#
+.if !empty(unix:M*NetBSD*)
+# XXX this is very ad-hoc, obviously, but until something better is done...
+COVERITY_TOP_CONFIG =	1
 .endif
 
 # Enable system-specific warnings -- this would likely double up on many of the
@@ -91,9 +119,9 @@ __GNULD__ !=		$(LD) -v | awk '{print int($$4);}' | tr -d ' \012'
 # least recent NetBSD when using Clang there may be some advantage as just being
 # defined adds "-Wno-sign-compare -Wno-pointer-sign".
 #
-#WARNS = 10
+#WARNS ?= 0
 
-# Do not enable/allow -Werror -- oh, soooo very many ways to do it!
+# Do not enable/allow -Werror -- But oh soooo very many ways to do it!
 #
 NOGCCERROR = 1			# NetBSD
 NOCLANGERROR = 1		# NetBSD
@@ -118,6 +146,7 @@ NO_CFLAGS_WARNINGS = 1
 # the .if logic somewhat....
 #
 # xxx there's also the ${EXPR:? flim : flam} form used by NetBSD....
+#
 
 # -Winline
 #
@@ -145,7 +174,7 @@ CWARNFLAGS += -Wcomment
 CWARNFLAGS += -Wcast-qual
 CWARNFLAGS += -Wpointer-arith
 CWARNFLAGS += -Wshadow
-# code may not be quite ready for full const-ification yet...
+# xxx some code may not be quite ready for full const-ification yet...
 CWARNFLAGS += -Wwrite-strings
 # this isn't mentioned in 1.42's manual but causes no error
 CWARNFLAGS += -Wstrict-prototypes
@@ -190,8 +219,7 @@ CWARNFLAGS += -Wformat-extra-args
 # -Wundef isn't in 2.7.2, but then again if you're still using 2.7.2 you may be
 # suffering from far more code generation bugs and other compiler problems than
 # you might know!
-# XXX however it may cause many warnings in system headers!
-#CWARNFLAGS += -Wundef
+CWARNFLAGS += -Wundef
 # we may intentionally have large arrays
 #CWARNFLAGS += -Wlarger-than-65536
 # N.B.:  -Wbad-function-cast can be extremely annoying as it complains about
@@ -342,33 +370,19 @@ LDSTATIC := # empty -- leak sanitizer does not support static linking
 . endif
 .endif
 
-# N.B.:  -g3 is required if debugging is wanted while optimizing with -O2.
-DBG ?= -g3
-OPTIM ?= -O2
-
-# Note:  FreeBSD's mk-files (<bsd.sys.mk>) use this directly, and correctly
-#
-CSTD ?= c99
-
-# prevent NetBSD's mk-files from adding -std=gnu99 to CFLAGS
-#
-.if !empty(unix:M*NetBSD*)
-# XXX this is very ad-hoc, obviously, but until something better is done...
-COVERITY_TOP_CONFIG =	1
-.endif
-
-.if (defined(TARGET_OSNAME) && (${TARGET_OSNAME} == "Darwin")) || defined(.FreeBSD)
-# for both FreeBSD and Mac OS X....
-NO_SHARED = YES
+.if !defined(__clang__)
+# in GCC -g3 includes macro definitions in debug info
+DBG = -g3
 .else
-NOSHARED = YES
+DBG = -g
 .endif
+OPTIM = -O2
 
 .if defined(__GNUC__) && ${__GNUC__} >= 1
 . if defined(__GNULD__) && ${__GNULD__} >= 1
-LDFLAGS += -Wl,--warn-common
+#LDFLAGS += -Wl,--warn-common
 #LDFLAGS += -Wl,--fatal-warnings
-#LDFLAGS += -Wl,--unresolved-symbols=report-all
+LDFLAGS += -Wl,--unresolved-symbols=report-all
 #LDFLAGS += -Wl,--error-unresolved-symbols
 . else
 .  if !empty(${DBG:M-g})
@@ -378,8 +392,22 @@ LDFLAGS += -Wl,--warn-common
 . endif
 .endif
 
-# However since <bsd.sys.mk> hasn't been included yet, these will still add the
-# flags anyway...
+#
+# XXX the rest could/should be split into Makefile.compiler2 that would be
+# included after <bsd.{prog,lib}.mk>, but then that has to be done explicitly
+# every time, sigh.  Only sjg's Mk-files provide an easy option with
+# "Makefile-final.inc"
+#
+
+# Since <bsd.sys.mk> hasn't been included yet (i.e. CFLAGS et al are all still
+# empty), these will still add the flags anyway, and early near the beginning,
+# meaning they won't override anything set in <bsd.sys.mk>.
+#
+# N.B.:  on most systems COPTS would be strongly preferred as it is usually
+# added late to CFLAGS, but on FreeBSD they have, since nearly forever, mostly
+# eliminated it and all its variants and added a warning in <bsd.prog.mk>, the
+# only remaining use, saying "XXX The use of COPTS in modern makefiles is
+# discouraged."
 #
 .if !empty(DBG) && empty(CFLAGS:M*${DBG}*)
 CFLAGS += ${DBG}
@@ -415,7 +443,7 @@ CFLAGS += -fno-strict-aliasing
 # WARNING:  Prevent the optimizer from assuming that the program
 # follows the strict signed overflow semantics permitted for the
 # language.
-#CFLAGS += -fno-strict-overflow
+CFLAGS += -fno-strict-overflow
 .endif
 
 # XXX in GCC -fstrict-enums apparently only applies to C++
@@ -424,14 +452,14 @@ CFLAGS += -fno-strict-aliasing
 # WARNING:  Prevent the compiler from optimizing "using the assumption
 # that a value of enumerated type can only be one of the values of the
 # enumeration"
-#CFLAGS += -fno-strict-enums
+CFLAGS += -fno-strict-enums
 .endif
 
 .if (defined(__GNUC__) && !defined(__clang__) && \
 	${__GNUC__} >= 4 && ${__GNUC_MINOR__} >= 2) && \
 	empty(CFLAGS:M*-fno-strict-volatile-bitfields*)
 # WARNING:  Force the compiler to always read the whole underlying value!
-#CFLAGS += -fno-strict-volatile-bitfields
+CFLAGS += -fno-strict-volatile-bitfields
 .endif
 
 # Dunno for sure if this is right, but Apple's PowerPC GCC-4.0.1 does not have
@@ -455,13 +483,33 @@ CFLAGS +=	-fstack-protector-all
 CWARNFLAGS +=	-Wstack-protector
 .endif
 
+# XXX should probably consider adding the following, at least for GCC to avoid
+# the worst cases of allowing the optimizer to abuse "undefined behaviour" in
+# counter-productive ways (bugs should be bugs!):
+#
+#	-fwrapv -fno-delete-null-pointer-checks -fno-aggressive-loop-optimizations
+#
+# XXX the problem is we don't have a firm list of which optimizations are "total
+# license" optimizations that abuse "undefined behaviour"
+#
+# XXX see also:  https://stackoverflow.com/questions/33278757/disable-all-optimization-options-in-gcc
+#
+# XXX worse yet GCC (and perhaps Clang) only warn about certain issues IFF they
+# are abusing them.  For example GCC's -Wstrict-overlfow only works if
+# -fstrict-overflow is enabled _and_ you have enabled a sufficient level of
+# optimization to trigger it.  WTFH!?!?!?  The manual at least states this:
+#
+#	Note that it does not warn about all cases where the code might
+#	overflow: it only warns about cases where the compiler implements some
+#	optimization.  Thus this warning depends on the optimization level.
+
 # This is a hack for my own NetBSD releases where older versions don't include
 # CPPFLAGS in the LINK macro, so the ".c:" rule won't get CPPFLAGS..
 #
 # (Note:  it's tempting to include "&& empty(LINK.c:M*CPPFLAGS*)" in the
 # expression, but that won't work because empty() expands the variable entirely
 # before applying modifiers.)
-.if !empty(unix:M*NetBSD*) && !defined(COMPILE_LINK.c)
+.if !defined(MAKE_VERSION) && !empty(unix:M*NetBSD*) && !defined(COMPILE_LINK.c)
 LDFLAGS += ${CPPFLAGS}
 .endif
 
@@ -469,4 +517,15 @@ LDFLAGS += ${CPPFLAGS}
 # "${TOOLDIR}/bin/nbmake-${MACHINE}")
 .if !empty(_CCLINKFLAGS)
 LDFLAGS += ${_CCLINKFLAGS}
+.endif
+
+# for sjg's Mk-files
+#
+# we disabled all the <warnings.mk> features above with NO_CFLAGS_WARNINGS, so
+# now we need to include our warnings in CFLAGS...
+#
+.if defined(MAKE_VERSION) && ${MAKE} != "bsdmake" && (!defined(.FreeBSD) || ${.FreeBSD} != "true")
+CFLAGS += ${CWARNFLAGS}
+# xxx also this, as the default ".c:" rule, using ${LINK.c}, doesn't include it
+LDFLAGS += ${LDSTATIC}
 .endif
