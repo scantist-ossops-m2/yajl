@@ -30,15 +30,17 @@ CXREF ?= cxref
 # triggered by bmake-do-docs as a subdir target
 docs: .PHONY html/yajl.apdx.html
 
-# See below, outside the if-MKDOC, for additional, non-optional, rules for
-# installing other docs
+# See below for additional, non-optional, rules for installing other docs
 #
-# XXX could this be done with <bsd.doc.mk>'s EXTRA ???
+# Note: remove the temporary ${.OBJDIR} symlink instead of trying to copy it.
+# MacOS in particular has had different versions of "cp" that have different
+# behaviour (10.x worked, OK, 11.x and 12.x had problems overwriting symlinks,
+# 13.x and 14.x worked OK again?)
 #
 install-docs:: .PHONY docs .WAIT
+	rm -f ${.OBJDIR}/html/index.html
 	cd html && cp -fR ./ ${DESTDIR}${DOCDIR}/${PACKAGE}/html/
-	rm -f ${DESTDIR}${DOCDIR}/${PACKAGE}/html/index.html
-	ln -fs ./doc/yajl.cxref.html ${DESTDIR}${DOCDIR}/${PACKAGE}/html/index.html
+	ln -fs doc/yajl.cxref.html ${DESTDIR}${DOCDIR}/${PACKAGE}/html/index.html
 
 # XXX this really SHOULD also depend on all the $${files} found herein....
 #
