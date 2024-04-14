@@ -15,9 +15,11 @@ jobs:
       fail-fast: false
       matrix:
         # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
-        # latest runners:  ubuntu-latest, ubuntu-22.04, ubuntu-20.04, macos-latest, macos-12, macos-11, macos-13?, macos-14?
-        # N.B.:  We want netbsd!!!, freebsd!!!, openbsd!!!
-        os: [ ubuntu-latest, ubuntu-20.04, macos-14, macos-13, macos-latest, macos-11 ]
+        # latest runners: ubuntu-20.04, ubuntu-22.04, macos-11, macos-12, macos-13, macos-14
+        #
+        # N.B.:  NetBSD et al VMs:  https://github.com/vmactions
+        #
+        os: [ ubuntu-22.04, ubuntu-20.04, macos-14, macos-13, macos-12, macos-11 ]
         cc: [ gcc, clang ]
         make: [ bmake, make ]
         sanitizer: [ NO_SANI, USE_ASAN, USE_UBSAN, USE_LEAKSAN ]
@@ -27,8 +29,6 @@ jobs:
         exclude:
         #
         # N.B.:  here we _EXCLUDE_ the matrix options we don't want!
-        #
-        # xxx Travis has "include:", does it work here?
         #
         # MacOS-11.x
         - os: macos-11
