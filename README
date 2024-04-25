@@ -13,6 +13,10 @@ Motto:  Write Portable C without complicating the build!
 
 See, e.g.: https://nullprogram.com/blog/2017/03/30/
 
+Also, and perhaps more importantly:
+
+	https://queue.acm.org/detail.cfm?id=2349257
+
 ## Why does the world need another C library for parsing JSON?
 
 Good question.  In a review of current C JSON parsing libraries I was
