@@ -124,7 +124,7 @@ PKGCONFIGDIR ?= ${LIBDIR}/pkgconfig
 # (note:  defaults are set in Makefile.compiler, or possibly /etc/mk.conf)
 #
 #DBG ?= -g3
-#OPTIM ?= -O2
+#OPTIM ?= -O0
 
 # If you are making changes and want to be sure to clean up all warnings....
 #
