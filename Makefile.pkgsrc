@@ -46,8 +46,7 @@ AUTO_MKDIRS=		yes
 
 # totally automatic PLIST generation -- probably preferable?
 #
-#GENERATE_PLIST=	cd ${DESTDIR}${PREFIX}; \
-#			${FIND} * \( -type f -or -type l \) | ${SORT};
+# PLIST_TYPE=		dynamic 	# and get rid of PLIST
 #
 GENERATE_PLIST+=	cd ${DESTDIR}${PREFIX} && \
 			${FIND} share/doc/${PKGBASE}/html \( -type f -or -type l \) | ${SORT};
