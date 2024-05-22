@@ -15,11 +15,11 @@ jobs:
       fail-fast: false
       matrix:
         # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
-        # latest runners: ubuntu-20.04, ubuntu-22.04, macos-12, macos-13, macos-14
+        # latest runners: ubuntu-20.04, ubuntu-22.04, ubuntu-24.04, macos-12, macos-13, macos-14
         #
         # N.B.:  NetBSD et al VMs:  https://github.com/vmactions
         #
-        os: [ ubuntu-22.04, ubuntu-20.04, macos-14, macos-13, macos-12 ]
+        os: [ ubuntu-24.04, ubuntu-22.04, ubuntu-20.04, macos-14, macos-13, macos-12 ]
         cc: [ gcc, clang ]
         make: [ bmake, make ]
         sanitizer: [ NO_SANI, USE_ASAN, USE_UBSAN, USE_LEAKSAN ]
@@ -88,6 +88,15 @@ jobs:
         - os: macos-latest
           docs: cxref
         - os: macos-latest
+          parallel: ''
+        #
+        # Ubuntu 24.04
+        - os: ubuntu-24.04
+          # it's gmake
+          make: make
+        - os: ubuntu-24.04
+          docs: true
+        - os: ubuntu-24.04
           parallel: ''
         #
         # Ubuntu 22.04
