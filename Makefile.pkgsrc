@@ -23,7 +23,7 @@ USE_BSD_MAKEFILE=	yes
 BSD_MAKE_BUILD_DIR=	${WRKDIR}/pkgbuild
 MAKE_ENV+=		MAKEOBJDIRPREFIX=${BSD_MAKE_BUILD_DIR}
 
-#USE_FEATURES+=		err warn snprintf asprintf
+USE_FEATURES+=		snprintf
 
 # xxx this use of ${VAR:!cmd!} is quite ugly to have to do, but because it is
 # evaluated lazily it works to find the canonical form of ${WRKSRC} as a
