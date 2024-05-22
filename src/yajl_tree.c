@@ -67,9 +67,10 @@ struct context_s
 };
 typedef struct context_s context_t;
 
-#define RETURN_ERROR(ctx,retval,...) {                                  \
-        if ((ctx)->errbuf != NULL)                                      \
-            snprintf ((ctx)->errbuf, (ctx)->errbuf_size, __VA_ARGS__);  \
+#define RETURN_ERROR(ctx, retval, ...) {                                \
+        if ((ctx)->errbuf != NULL) {                                    \
+            snprintf((ctx)->errbuf, (ctx)->errbuf_size, __VA_ARGS__);   \
+        }                                                               \
         return (retval);                                                \
     }
 
