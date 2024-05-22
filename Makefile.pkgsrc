@@ -36,7 +36,7 @@ USE_FEATURES+=		snprintf
 # XXX the appearance of the first word "WRKSRC" in the value below is actually
 # unnecessary for make(1), but the makefile parser in pkglint cannot handle it
 # being missing!  In other news the new pkglint(1) is both kinda stupid and
-# overly pedantic.
+# overly pedantic for no real benefit.
 #
 CANONICAL_WRKSRC=		${WRKSRC:!cd ${WRKSRC} && ${PWD_CMD}!}
 PKGCONFIG_OVERRIDE=		${BSD_MAKE_BUILD_DIR}/${CANONICAL_WRKSRC}/src/${PKGBASE}.pc
@@ -90,7 +90,8 @@ PLIST.mkprofile=	yes
 do-configure:
 	${MKDIR} ${BSD_MAKE_BUILD_DIR}
 
-# n.b.:  this package does not need this step -- it does it itself
+# n.b.:  this particular package does not need this pre-build step
+#        -- it does it itself!
 #pre-build:
 #	cd ${WRKSRC} && ${BUILD_MAKE_CMD} obj
 
@@ -111,8 +112,8 @@ do-configure:
 #	git tag -a -s -F doc/release-${PKGVERSION_NOREV}.md release-${PKGVERSION_NOREV}
 #	gh release create release-${PKGVERSION_NOREV} -t "Version ${PKGVERSION_NOREV}" --verify-tag --notes-from-tag
 #
-# Now go to where your ${REPODIR} (or where you have cloned
-# https://github.com/robohack/yajl to), and 'make setup-pkgsrc':
+# Now, still in your ${REPODIR}, (or wherever you have cloned
+# https://github.com/robohack/yajl to), run 'make setup-pkgsrc':
 #
 REPODIR?=	.	# /work/woods/f-yajl
 PKGDIR?=	/usr/pkgsrc/devel/yajl
