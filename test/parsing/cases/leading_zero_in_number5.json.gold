@@ -1,4 +1,4 @@
 map open '{'
-key: 'bad thing'
+key: 'bad float'
 line: 1: offset: 15: lexical error: malformed number, a leading zero is invalid.
 memory leaks:	0

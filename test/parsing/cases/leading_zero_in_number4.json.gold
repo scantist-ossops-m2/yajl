@@ -1,0 +1,4 @@
+map open '{'
+key: 'bad negative decimal'
+line: 1: offset: 27: lexical error: malformed number, a leading zero is invalid.
+memory leaks:	0

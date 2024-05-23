@@ -542,7 +542,7 @@ yajl_lex_number(yajl_lexer lexer,
     }
     if (leadingZero) {
         unreadChar(lexer, offset);
-        lexer->error = yajl_lex_integer_with_leading_zero;
+        lexer->error = yajl_lex_number_with_leading_zero;
         return yajl_tok_error;
     }
 
@@ -858,8 +858,8 @@ yajl_lex_error_to_string(yajl_lex_error error) /*+ lexer error value +*/
         case yajl_lex_unallowed_comment:
             return "probable comment found in input text, comments are "
                    "not enabled.";
-        case yajl_lex_integer_with_leading_zero:
-            return "malformed integer, a leading zero is invalid.";
+        case yajl_lex_number_with_leading_zero:
+            return "malformed number, a leading zero is invalid.";
     }
     /* NOTREACHED */
     return "unknown error code";
