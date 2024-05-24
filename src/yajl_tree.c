@@ -181,8 +181,8 @@ static yajl_val context_pop(context_t *ctx)
     return (v);
 }
 
-static int object_add_keyval(context_t *ctx,
-                             yajl_val obj, char *key, yajl_val value)
+static void object_add_keyval(context_t *ctx,
+                              yajl_val obj, char *key, yajl_val value)
 {
     const char **tmpk;
     yajl_val *tmpv;
@@ -210,10 +210,10 @@ static int object_add_keyval(context_t *ctx,
     obj->u.object.values[obj->u.object.len] = value;
     obj->u.object.len++;
 
-    return (0);
+    return;
 }
 
-static int array_add_value (context_t *ctx,
+static void array_add_value(context_t *ctx,
                             yajl_val array, yajl_val value)
 {
     yajl_val *tmp;
@@ -234,7 +234,7 @@ static int array_add_value (context_t *ctx,
     array->u.array.values[array->u.array.len] = value;
     array->u.array.len++;
 
-    return 0;
+    return;
 }
 
 /*
@@ -284,12 +284,14 @@ static int context_add_value (context_t *ctx, yajl_val v)
 
             key = ctx->stack->key;
             ctx->stack->key = NULL;
-            return (object_add_keyval (ctx, ctx->stack->value, key, v));
+            object_add_keyval (ctx, ctx->stack->value, key, v);
+            return (0);
         }
     }
     else if (YAJL_IS_ARRAY (ctx->stack->value))
     {
-        return (array_add_value (ctx, ctx->stack->value, v));
+        array_add_value (ctx, ctx->stack->value, v);
+        return (0);
     }
     else
     {
