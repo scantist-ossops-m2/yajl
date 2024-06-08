@@ -100,7 +100,7 @@ static void yajl_object_free (yajl_val v)
 # endif
         YA_FREE(yajl_tree_parse_afs, __UNCONST(v->u.object.keys[i]));
         v->u.object.keys[i] = NULL;
-        yajl_tree_free (v->u.object.values[i]);
+        yajl_tree_free(v->u.object.values[i]);
         v->u.object.values[i] = NULL;
     }
 
@@ -118,14 +118,17 @@ static void yajl_array_free (yajl_val v)
     size_t i;
 
     assert(YAJL_IS_ARRAY(v));
+    assert(v->u.array.len == 0 ? (v->u.array.values == NULL)
+                               : (v->u.array.values != NULL));
 
-    for (i = 0; i < v->u.array.len; i++)
-    {
-        yajl_tree_free (v->u.array.values[i]);
+    for (i = 0; i < v->u.array.len; i++) {
+        yajl_tree_free(v->u.array.values[i]);
         v->u.array.values[i] = NULL;
     }
 
-    YA_FREE(yajl_tree_parse_afs, v->u.array.values);
+    if (v->u.array.values != NULL) {
+        YA_FREE(yajl_tree_parse_afs, v->u.array.values);
+    }
     YA_FREE(yajl_tree_parse_afs, v);
 }
 
@@ -340,7 +343,7 @@ static int handle_number (void *ctx, const char *string, size_t string_length)
     endptr = NULL;
     errno = 0;
     v->u.number.d = strtod(v->u.number.r, &endptr);
-    if ((errno == 0) && (endptr != NULL) && (*endptr == 0))
+    if ((errno == 0) && (endptr != NULL) && (*endptr == 0)) /* XXX endptr != v->u.number.r */
         v->u.number.flags |= YAJL_NUMBER_DOUBLE_VALID;
 
     return ((context_add_value(ctx, v) == 0) ? STATUS_CONTINUE : STATUS_ABORT);
@@ -558,28 +561,25 @@ void yajl_tree_free (yajl_val v)        /*+ Pointer to a JSON value returned by
                                          * "yajl_tree_parse".  Passing NULL is
                                          * valid and results in a no-op. +*/
 {
-    if (v == NULL) return;
+    if (v == NULL) {
+        return;
+    }
 
-    if (YAJL_IS_STRING(v))
-    {
-        YA_FREE(yajl_tree_parse_afs, v->u.string);
+    if (YAJL_IS_STRING(v)) {
+        if (v->u.string != NULL) {
+            YA_FREE(yajl_tree_parse_afs, v->u.string);
+        }
         YA_FREE(yajl_tree_parse_afs, v);
-    }
-    else if (YAJL_IS_NUMBER(v))
-    {
-        YA_FREE(yajl_tree_parse_afs, v->u.number.r);
+    } else if (YAJL_IS_NUMBER(v)) {
+        if (v->u.number.r != NULL) {
+            YA_FREE(yajl_tree_parse_afs, v->u.number.r);
+        }
         YA_FREE(yajl_tree_parse_afs, v);
-    }
-    else if (YAJL_IS_OBJECT(v))
-    {
+    } else if (YAJL_IS_OBJECT(v)) {
         yajl_object_free(v);
-    }
-    else if (YAJL_IS_ARRAY(v))
-    {
+    } else if (YAJL_IS_ARRAY(v)) {
         yajl_array_free(v);
-    }
-    else /* if (yajl_t_true or yajl_t_false or yajl_t_null) */
-    {
+    } else /* if (yajl_t_true or yajl_t_false or yajl_t_null) */ {
         YA_FREE(yajl_tree_parse_afs, v);
     }
 }
