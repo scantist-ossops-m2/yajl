@@ -63,11 +63,10 @@ typedef enum {
 typedef struct yajl_val_s * yajl_val;
 
 /*+
- * A JSON value representation capable of holding one of the seven
- * types above. For "string", "number", "object", and "array"
- * additional data is available in the union.  The "YAJL_IS_*"
- * and "YAJL_GET_*" macros below allow type checking and convenient
- * value extraction.
+ * A JSON value representation capable of holding one of the seven types above.
+ * For "string", "number", "object", and "array" additional data is available in
+ * the union.  The "YAJL_IS_*" and "YAJL_GET_*" macros below allow type checking
+ * and convenient value extraction.
  +*/
 struct yajl_val_s
 {
@@ -82,15 +81,27 @@ struct yajl_val_s
      +*/
     union
     {
-        char * string;
+        char *string;
+        /*+
+         * Integers and doubles are combined into one representation as a
+         * yajl_t_number, while also keeping the original string form available.
+         *
+         * While there are some advantages to this amalgamation, it does
+         * complicate extracting the values.
+         *
+         * Normally every integer will also be available as a double, provided
+         * it is within the range of integers representable by a double.
+         *
+         * However care must be taken to always check if the desired value is
+         * valid by examining the flags field.
+         +*/
         struct {
             long long i; /*+ integer value, if representable. +*/
             double  d;   /*+ double value, if representable. +*/
             char   *r;   /*+ unparsed number in string form. +*/
             /*+
-             * Signals whether the \em i and \em d members are
-             * valid. See \c YAJL_NUMBER_INT_VALID and
-             * \c YAJL_NUMBER_DOUBLE_VALID.
+             * Signals whether the .i and .d members are valid.  See
+             * YAJL_NUMBER_INT_VALID() and YAJL_NUMBER_DOUBLE_VALID().
              +*/
             unsigned int flags;
         } number;
