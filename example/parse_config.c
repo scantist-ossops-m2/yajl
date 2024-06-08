@@ -21,6 +21,10 @@
 
 #include <assert.h>
 
+#ifndef EXIT_USAGE
+# define EXIT_USAGE 2
+#endif
+
 #include "yajl/yajl_tree.h"
 
 /* context storage for memory debugging routines */
@@ -86,15 +90,146 @@ yajlTestRealloc(void *ctx,
     return rv;
 }
 
+static const char *
+yajl_type_name(yajl_type t)
+{
+    switch (t) {
+    case yajl_t_string:
+        return "string";
+        break;
+    case yajl_t_number:
+        return "number";
+        break;
+    case yajl_t_object:
+        return "object";
+        break;
+    case yajl_t_array:
+        return "array";
+        break;
+    case yajl_t_true:
+        return "true";
+    case yajl_t_false:
+        return "false";
+        break;
+    case yajl_t_null:
+        return "null";
+        break;
+    case yajl_t_any:
+        return "any";
+        break;
+    }
+    assert(false);
+    return "OOPS!!!";
+}
 
-static unsigned char fileData[65536];   /* xxx: allocate to size of file, error if stdin can't be stat()ed? */
+static const char *
+yajl_tree_path(const char *path[],
+               const char *p2)
+{
+    static char ps[65536];
+    size_t i;
+
+    ps[0] = '\0';
+    for (i = 0; path[i]; i++) {
+        strcat(ps, path[i]);
+        if (path[i + 1] != NULL || p2 != NULL) {
+            strcat(ps, "/");
+        }
+    }
+    if (p2) {
+        strcat(ps, p2);
+    }
+
+    return ps;
+}
+
+/*
+ * XXX this is just a cheap hack that prints simpler structures that are not
+ * nested too deeply.....
+ */
+static void
+yajl_tree_print_v(const char *path[],
+                  const char *p2,       /* xxx should be array */
+                  yajl_val v)
+{
+    size_t i;
+    const char *np[1000];              /* xxx allocate to len of path + 2 */
+
+    switch (v->type) {
+    case yajl_t_string:
+        if (path != NULL) {
+            printf("%s: ", yajl_tree_path(path, p2));
+        }
+        printf("\"%s\"\n", YAJL_GET_STRING(v));
+        break;
+    case yajl_t_number:
+        if (path != NULL) {
+            printf("%s: ", yajl_tree_path(path, p2));
+        }
+        if (YAJL_IS_DOUBLE(v)) {
+            printf("%g\n", YAJL_GET_DOUBLE(v));
+        } else if (YAJL_IS_INTEGER(v)) {
+            printf("%lld\n", YAJL_GET_INTEGER(v));
+        } else {
+            printf("%s [INVALID RANGE]\n", YAJL_GET_NUMBER(v));
+        }
+        break;
+    case yajl_t_object:
+        i = 0;
+        if (path != NULL) {
+            for (i = 0; path[i]; i++) {
+                np[i] = path[i];
+            }
+        }
+        if (p2) {
+            np[i] = p2;
+            i++;
+        }
+        np[i] = NULL;
+        for (i = 0; i < v->u.object.len; i++) {
+            yajl_tree_print_v(np, v->u.object.keys[i], v->u.object.values[i]);
+        }
+        break;
+    case yajl_t_array:
+        if (path != NULL) {
+            printf("%s:\n", yajl_tree_path(path, p2));
+        }
+        for (i = 0; i < v->u.array.len; i++) {
+            printf("    [%ju]: (%s) ", i, yajl_type_name(v->u.array.values[i]->type));
+            /* XXX p2 should be path + p2 */
+            yajl_tree_print_v(path, p2, v->u.array.values[i]);
+        }
+        break;
+    case yajl_t_true:
+    case yajl_t_false:
+        assert(YAJL_IS_TRUE(v) || YAJL_IS_FALSE(v));
+        if (path != NULL) {
+            printf("%s: ", yajl_tree_path(path, p2));
+        }
+        printf("%s\n", YAJL_IS_TRUE(v) ? "true" : "false");
+        break;
+    case yajl_t_null:
+        if (path != NULL) {
+            printf("%s: ", yajl_tree_path(path, p2));
+        }
+        printf("<NULL>\n");
+        break;
+    case yajl_t_any:
+        assert(v->type != yajl_t_any); /* n.b.: invalid in data! */
+        break;
+    }
+}
+
+static unsigned char fileData[65536];   /* xxx: allocate and then realloc as reading (or provide getline(3)) */
 
 int
-main(void)
+main(int argc,
+     const char *argv[])
 {
     size_t rd;
     yajl_val node;
     char errbuf[1024];
+    const char **path;
 
     /* memory allocation debugging: allocate a structure which holds
      * allocation routines */
@@ -116,7 +251,14 @@ main(void)
     allocFuncs.ctx = (void *) &memCtx;
     yajl_tree_parse_afs = &allocFuncs;
 
-    /* read the entire config file */
+    if (argc == 1) {
+        fprintf(stderr, "Usage: %s json path ...\n", argv[0]);
+        exit(EXIT_USAGE);
+    }
+
+    path = &(argv[1]);
+
+    /* read the entire config file (xxx or as much as we have room for) */
     rd = fread((void *) fileData, (size_t) 1, sizeof(fileData) - 1, stdin);
 
     /* file read error handling */
@@ -145,14 +287,12 @@ main(void)
 
     /* ... and extract a nested value from the config file */
     {
-        const char * path[] = { "Logging", "timeFormat", (const char *) 0 };
-
-        yajl_val v = yajl_tree_get(node, path, yajl_t_string);
+        yajl_val v = yajl_tree_get(node, path, yajl_t_any);
 
         if (v) {
-            printf("%s/%s: %s\n", path[0], path[1], YAJL_GET_STRING(v));
+            yajl_tree_print_v(path, NULL, v);
         } else {
-            printf("no such node: %s/%s\n", path[0], path[1]);
+            printf("no such node: %s\n", yajl_tree_path(path, NULL));
         }
     }
     /*
