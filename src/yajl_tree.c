@@ -421,9 +421,12 @@ static int handle_null (void *ctx)
  * Returns a pointer to a yajl_val object which is the top-level value (root of
  * the parse tree) or NULL on error.
  *
- * The memory pointed to must be freed using yajl_tree_free().  In case of an
- * error, a null terminated message describing the error in more detail is
- * stored in error_buffer if it is not NULL.
+ * The memory pointed to by the return value must be freed by passing it to
+ * yajl_tree_free().
+ *
+ * In case of an error the first error_buffer_size-1 bytes of a NUL-terminated
+ * message describing the error in more detail is stored in error_buffer (iff
+ * that is not NULL).
  +*/
 yajl_val yajl_tree_parse (const char *input, /*+ Pointer to a null-terminated
                                               *  utf8 string containing JSON
@@ -431,7 +434,7 @@ yajl_val yajl_tree_parse (const char *input, /*+ Pointer to a null-terminated
                           char *error_buffer, /*+ Pointer to a buffer in which
                                                * an error message will be stored
                                                * if yajl_tree_parse() fails, or
-                                               * NULL. The buffer will be
+                                               * NULL.  The buffer will be
                                                * initialized before parsing, so
                                                * its content will be destroyed
                                                * even if yajl_tree_parse()
