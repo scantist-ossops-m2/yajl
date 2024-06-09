@@ -470,8 +470,9 @@ yajl_val yajl_tree_parse (const char *input, /*+ Pointer to a null-terminated
     ctx.errbuf = error_buffer;
     ctx.errbuf_size = error_buffer_size;
 
-    if (error_buffer != NULL)
-        memset (error_buffer, 0, error_buffer_size);
+    if (error_buffer != NULL) {
+        memset(error_buffer, 0, error_buffer_size);
+    }
 
     handle = yajl_alloc(&callbacks, yajl_tree_parse_afs, &ctx);
     if (yajl_tree_parse_afs == NULL) {
@@ -564,8 +565,23 @@ void yajl_tree_free (yajl_val v)        /*+ Pointer to a JSON value returned by
                                          * "yajl_tree_parse".  Passing NULL is
                                          * valid and results in a no-op. +*/
 {
+    static yajl_alloc_funcs afs;
+    bool undo_afs = false;
+
     if (v == NULL) {
         return;
+    }
+
+    /*
+     * n.b.:  if the caller never pointed yajl_tree_parse_afs at their own
+     * yajl_alloc_funcs, then yajl_tree_parse() will have reset it to NULL on
+     * return and so we must set it up again, temporarily, with the default
+     * functions.
+     */
+    if (yajl_tree_parse_afs == NULL) {
+        undo_afs = true;
+        yajl_set_default_alloc_funcs(&afs);
+        yajl_tree_parse_afs = &afs;
     }
 
     if (YAJL_IS_STRING(v)) {
@@ -584,5 +600,9 @@ void yajl_tree_free (yajl_val v)        /*+ Pointer to a JSON value returned by
         yajl_array_free(v);
     } else /* if (yajl_t_true or yajl_t_false or yajl_t_null) */ {
         YA_FREE(yajl_tree_parse_afs, v);
+    }
+
+    if (undo_afs) {
+        yajl_tree_parse_afs = NULL;
     }
 }
